@@ -16,6 +16,7 @@ pkgname=(
   'lib32-mesa'
 )
 pkgver=23.1.3.chos1
+mesaver=${pkgver%.*}
 pkgrel=1
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
 url="https://www.mesa3d.org/"
@@ -56,7 +57,7 @@ makedepends=(
 
 )
 source=(
-  https://mesa.freedesktop.org/archive/mesa-${pkgver}.tar.xz{,.sig}
+  https://mesa.freedesktop.org/archive/mesa-${mesaver}.tar.xz{,.sig}
   LICENSE
 )
 sha256sums=('2f6d7381bc10fbd2d6263ad1022785b8b511046c1a904162f8f7da18eea8aed9'
@@ -73,7 +74,7 @@ validpgpkeys=('8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'  # Emil Velikov <emil.l
               '57551DE15B968F6341C248F68D8E31AFC32428A6') # Eric Engestrom <eric@engestrom.ch>
 
 prepare() {
-  cd mesa-$pkgver
+  cd mesa-$mesaver
 }
 
 _libdir=usr/lib32
@@ -123,7 +124,7 @@ build() {
   export PKG_CONFIG="i686-pc-linux-gnu-pkg-config"
   export LLVM_CONFIG="llvm-config32"
 
-  arch-meson mesa-$pkgver build "${meson_options[@]}"
+  arch-meson mesa-$mesaver build "${meson_options[@]}"
   meson configure build # Print config
   meson compile -C build
 
