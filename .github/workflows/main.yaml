@@ -18,7 +18,7 @@ jobs:
         package: [mesa, lib32-mesa]
 
     outputs:
-      full_version: ${{ steps.mesa-package-version.outputs.full_version }}
+      full_version: ${{ steps.set-package-version.outputs.full_version }}
 
     container: archlinux:base-devel
 
@@ -37,7 +37,7 @@ jobs:
           echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> /etc/pacman.conf
       - name: Generate .SRCINFO
         run: |
-          ls -ahl /home/build/${{ matrix.package }} 
+          ls -ahl /home/build/${{ matrix.package }}
           su build bash -c "cd /home/build/${{ matrix.package }} && makepkg --printsrcinfo > /home/build/${{ matrix.package }}/.SRCINFO"
       - name: Install dependencies
         run: |
@@ -48,7 +48,7 @@ jobs:
         run: |
           su build bash -c "cd /home/build/${{ matrix.package }}  && MAKEFLAGS=-j$(nproc) makepkg"
       - if: matrix.package == 'mesa'
-        name: mesa-package-version
+        name: Set mesa package version
         id: set-mesa-version
         shell: bash
         run: |
@@ -58,7 +58,7 @@ jobs:
       - name: Upload package artifact
         uses: actions/upload-artifact@v3
         with:
-          name: mesa-chimeraos-package
+          name: mesa-chimeraos-${{matrix.package}}
           path: |
             ${{ env.PKGDEST }}/*.pkg.tar.zst
           if-no-files-found: error
@@ -73,7 +73,12 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: mesa-chimeraos-package
+          name: mesa-chimeraos-mesa
+          path: ${{ env.PKGDEST }}
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: mesa-chimeraos-lib32-mesa
           path: ${{ env.PKGDEST }}
 
       - name: Make release
