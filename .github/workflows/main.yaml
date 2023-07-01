@@ -50,6 +50,8 @@ jobs:
       - if: matrix.package == 'mesa'
         name: mesa-package-version
         id: set-mesa-version
+        shell: bash
+        run: |
           . /home/build/${{ matrix.package }}/PKGBUILD
           full_version=${pkgver}-${pkgrel}
           echo "full_version=$full_version" >> "$GITHUB_OUTPUT"
