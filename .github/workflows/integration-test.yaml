@@ -1,0 +1,42 @@
+name: Test patches integration
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  BUILDDIR: "/tmp/build"
+
+jobs:
+  test-integration:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [mesa, lib32-mesa]
+
+    container: archlinux:base-devel
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create build user
+        run: |
+          useradd -m build
+          cp -vR ${{ matrix.package }} /home/build/${{ matrix.package }}
+          chown -vR build /home/build/${{ matrix.package }}
+      - name: Set up pacman keyring
+        run: |
+          pacman-key --init
+          pacman-key --populate archlinux
+          mkdir -p /etc/gnupg && echo "auto-key-retrieve" >> /etc/gnupg/gpg.conf
+          echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> /etc/pacman.conf
+      - name: Generate .SRCINFO
+        run: |
+          ls -ahl /home/build/${{ matrix.package }} 
+          su build bash -c "cd /home/build/${{ matrix.package }} && makepkg --printsrcinfo > /home/build/${{ matrix.package }}/.SRCINFO"
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm $(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' /home/build/${{ matrix.package }}/.SRCINFO)
+      - name: Prepare sources
+        shell: bash
+        run: |
+          su build bash -c "cd /home/build/${{ matrix.package }}. && makepkg --nobuild"
