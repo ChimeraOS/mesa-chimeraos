@@ -2,6 +2,6 @@
 
 . mesa/PKGBUILD
 
-tagname="v${pkgver%.*}-${pkgver##*.}"
+tagname="${pkgver%.*}-${pkgver##*.}"
 echo "Making git tag for $tagname"
 git tag "${tagname}" && git log -1
