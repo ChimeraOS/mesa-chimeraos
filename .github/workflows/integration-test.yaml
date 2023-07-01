@@ -39,4 +39,4 @@ jobs:
       - name: Prepare sources
         shell: bash
         run: |
-          su build bash -c "cd /home/build/${{ matrix.package }}. && makepkg --nobuild"
+          su build bash -c "cd /home/build/${{ matrix.package }}/ && makepkg --nobuild"
