@@ -89,8 +89,8 @@ jobs:
           su build bash -c "cd /home/build/lib32-mesa && makepkg --printsrcinfo > /home/build/lib32-mesa/.SRCINFO"
       - name: Install dependencies
         run: |
-          pacman --noconfirm -U --overwrite '*' /home/build/*.pkg.tar.zst
           pacman -Syu --noconfirm $(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' /home/build/lib32-mesa/.SRCINFO)
+          pacman --noconfirm -U --overwrite '*' /home/build/*.pkg.tar.zst
       - name: Build mesa-chimeraos package
         id: build-mesa-package
         shell: bash
