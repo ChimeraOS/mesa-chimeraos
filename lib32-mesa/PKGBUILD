@@ -78,6 +78,7 @@ validpgpkeys=('8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'  # Emil Velikov <emil.l
 
 prepare() {
   cd mesa-$_mesaver
+  patch -Np1 -i ../0001-gamescope-limiter.patch
 }
 
 _libdir=usr/lib32
