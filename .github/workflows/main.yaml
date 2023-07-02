@@ -19,7 +19,7 @@ jobs:
         package: [mesa, lib32-mesa]
 
     outputs:
-      full_version: ${{ steps.set-package-version.outputs.full_version }}
+      full_version: ${{ steps.set-mesa-version.outputs.full_version }}
 
     container: archlinux:base-devel
 
