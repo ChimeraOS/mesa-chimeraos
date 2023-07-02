@@ -48,8 +48,7 @@ jobs:
         shell: bash
         run: |
           su build bash -c "cd /home/build/${{ matrix.package }}  && MAKEFLAGS=-j$(nproc) makepkg"
-      - if: matrix.package == 'mesa'
-        name: Set mesa package version
+      - name: Set mesa package version
         id: set-mesa-version
         shell: bash
         run: |
