@@ -36,9 +36,9 @@ jobs:
           echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> /etc/pacman.conf
       - name: Generate .SRCINFO
         run: |
-          ls -ahl /home/build/mesa
           su build bash -c "cd /home/build/mesa && makepkg --printsrcinfo > /home/build/mesa/.SRCINFO"
-      - name: Install dependencies
+          su build bash -c "cd /home/build/lib32-mesa && makepkg --printsrcinfo > /home/build/lib32-mesa/.SRCINFO"
+      - name: Install dependencies (mesa)
         run: |
           pacman -Syu --noconfirm $(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' /home/build/mesa/.SRCINFO)
       - name: Build mesa-chimeraos package
@@ -53,22 +53,10 @@ jobs:
           . /home/build/mesa/PKGBUILD
           full_version=${pkgver}-${pkgrel}
           echo "full_version=$full_version" >> "$GITHUB_OUTPUT"
-      - name: Upload package artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: mesa-chimeraos-mesa
-          path: |
-            ${{ env.PKGDEST }}/*.pkg.tar.zst
-          if-no-files-found: error
-      - name: Generate .SRCINFO
+      - name: Install dependencies (lib32-mesa)
         run: |
-          ls -ahl /home/build/lib32-mesa
-          su build bash -c "cd /home/build/lib32-mesa && makepkg --printsrcinfo > /home/build/lib32-mesa/.SRCINFO"
-      - name: Install dependencies
-        run: |
-          pacman -Syu --noconfirm $(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' /home/build/lib32-mesa/.SRCINFO)
+          pacman -S --noconfirm $(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' /home/build/lib32-mesa/.SRCINFO)
           pacman --noconfirm -U --overwrite '*' /tmp/mesa-chimeraos/*.pkg.tar.zst
-          rm /tmp/mesa-chimeraos/*.pkg.tar.zst
       - name: Build lib32-mesa-chimeraos package
         id: build-lib32-mesa-package
         shell: bash
@@ -77,7 +65,7 @@ jobs:
       - name: Upload package artifact
         uses: actions/upload-artifact@v3
         with:
-          name: mesa-chimeraos-lib32-mesa
+          name: mesa-chimeraos
           path: |
             ${{ env.PKGDEST }}/*.pkg.tar.zst
           if-no-files-found: error
@@ -92,14 +80,8 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: mesa-chimeraos-mesa
+          name: mesa-chimeraos
           path: ${{ env.PKGDEST }}
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: mesa-chimeraos-lib32-mesa
-          path: ${{ env.PKGDEST }}
-
       - name: Make release
         uses: softprops/action-gh-release@v1
         with:
