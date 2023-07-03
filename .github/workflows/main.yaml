@@ -75,7 +75,7 @@ jobs:
         run: |
           useradd -m build
           cp -vR common /home/build/common
-          cp -vR mesa /home/build/lib32-mesa
+          cp -vR lib32-mesa /home/build/lib32-mesa
           chown -vR build /home/build/lib32-mesa
       - name: Set up pacman keyring
         run: |
