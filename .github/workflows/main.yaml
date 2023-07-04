@@ -13,11 +13,6 @@ env:
 jobs:
   build-mesa:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        package: [mesa, lib32-mesa]
-
     outputs:
       full_version: ${{ steps.set-mesa-version.outputs.full_version }}
 
@@ -29,8 +24,10 @@ jobs:
         run: |
           useradd -m build
           cp -vR common /home/build/common
-          cp -vR ${{ matrix.package }} /home/build/${{ matrix.package }}
-          chown -vR build /home/build/${{ matrix.package }}
+          cp -vR mesa /home/build/mesa
+          cp -vR lib32-mesa /home/build/lib32-mesa
+          chown -vR build /home/build/mesa
+          chown -vR build /home/build/lib32-mesa
       - name: Set up pacman keyring
         run: |
           pacman-key --init
@@ -39,27 +36,36 @@ jobs:
           echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> /etc/pacman.conf
       - name: Generate .SRCINFO
         run: |
-          ls -ahl /home/build/${{ matrix.package }}
-          su build bash -c "cd /home/build/${{ matrix.package }} && makepkg --printsrcinfo > /home/build/${{ matrix.package }}/.SRCINFO"
-      - name: Install dependencies
+          su build bash -c "cd /home/build/mesa && makepkg --printsrcinfo > /home/build/mesa/.SRCINFO"
+          su build bash -c "cd /home/build/lib32-mesa && makepkg --printsrcinfo > /home/build/lib32-mesa/.SRCINFO"
+      - name: Install dependencies (mesa)
         run: |
-          pacman -Syu --noconfirm $(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' /home/build/${{ matrix.package }}/.SRCINFO)
+          pacman -Syu --noconfirm $(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' /home/build/mesa/.SRCINFO)
       - name: Build mesa-chimeraos package
         id: build-mesa-package
         shell: bash
         run: |
-          su build bash -c "cd /home/build/${{ matrix.package }}  && MAKEFLAGS=-j$(nproc) makepkg"
+          su build bash -c "cd /home/build/mesa  && MAKEFLAGS=-j$(nproc) makepkg"
       - name: Set mesa package version
         id: set-mesa-version
         shell: bash
         run: |
-          . /home/build/${{ matrix.package }}/PKGBUILD
+          . /home/build/mesa/PKGBUILD
           full_version=${pkgver}-${pkgrel}
           echo "full_version=$full_version" >> "$GITHUB_OUTPUT"
+      - name: Install dependencies (lib32-mesa)
+        run: |
+          pacman -S --noconfirm $(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' /home/build/lib32-mesa/.SRCINFO)
+          pacman --noconfirm -U --overwrite '*' /tmp/mesa-chimeraos/*.pkg.tar.zst
+      - name: Build lib32-mesa-chimeraos package
+        id: build-lib32-mesa-package
+        shell: bash
+        run: |
+          su build bash -c "cd /home/build/lib32-mesa  && MAKEFLAGS=-j$(nproc) makepkg"
       - name: Upload package artifact
         uses: actions/upload-artifact@v3
         with:
-          name: mesa-chimeraos-${{matrix.package}}
+          name: mesa-chimeraos
           path: |
             ${{ env.PKGDEST }}/*.pkg.tar.zst
           if-no-files-found: error
@@ -74,14 +80,8 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: mesa-chimeraos-mesa
+          name: mesa-chimeraos
           path: ${{ env.PKGDEST }}
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: mesa-chimeraos-lib32-mesa
-          path: ${{ env.PKGDEST }}
-
       - name: Make release
         uses: softprops/action-gh-release@v1
         with:
