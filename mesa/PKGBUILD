@@ -108,7 +108,7 @@ build() {
     -D b_ndebug=true
     -D dri3=enabled
     -D egl=enabled
-    -D gallium-drivers=r300,r600,radeonsi,nouveau,swrast,i915,iris,crocus,zink,d3d12
+    -D gallium-drivers=r300,r600,radeonsi,nouveau,swrast,i915,iris,crocus,zink
     -D gallium-extra-hud=true
     -D gallium-nine=true
     -D gallium-omx=bellagio
