@@ -6,7 +6,6 @@
 pkgbase=lib32-mesa
 pkgname=(
   'lib32-vulkan-mesa-layers'
-  'lib32-opencl-mesa'
   'lib32-vulkan-intel'
   'lib32-vulkan-radeon'
   'lib32-vulkan-swrast'
@@ -102,7 +101,6 @@ build() {
     -D gallium-extra-hud=true
     -D gallium-nine=true
     -D gallium-omx=disabled
-    -D gallium-opencl=icd
     -D gallium-rusticl=false
     -D gallium-va=enabled
     -D gallium-vdpau=enabled
@@ -171,29 +169,6 @@ package_lib32-vulkan-mesa-layers() {
   rm -rv fakeinstall/usr/share/vulkan/implicit_layer.d
   _install fakeinstall/$_libdir/libVkLayer_*.so
   rm -v fakeinstall/usr/bin/mesa-overlay-control.py
-
-  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
-}
-
-package_lib32-opencl-mesa() {
-  pkgdesc="OpenCL support for AMD/ATI Radeon mesa drivers (32-bit)"
-  depends=(
-    'lib32-clang'
-    'lib32-expat'
-    'lib32-libdrm'
-    'lib32-libelf'
-    'lib32-zstd'
-
-    'libclc'
-    'spirv-llvm-translator'
-    'opencl-mesa'
-  )
-  optdepends=('opencl-headers: headers necessary for OpenCL development')
-  provides=('lib32-opencl-driver')
-
-  rm -rv fakeinstall/etc/OpenCL
-  _install fakeinstall/$_libdir/lib*OpenCL*
-  _install fakeinstall/$_libdir/gallium-pipe
 
   install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
 }

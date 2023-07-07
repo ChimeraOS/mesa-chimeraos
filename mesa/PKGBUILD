@@ -6,7 +6,6 @@
 pkgbase=mesa
 pkgname=(
   'vulkan-mesa-layers'
-  'opencl-mesa'
   'vulkan-intel'
   'vulkan-radeon'
   'vulkan-swrast'
@@ -64,11 +63,6 @@ makedepends=(
   # gallium-omx deps
   'libomxil-bellagio'
 
-  # gallium-rusticl deps
-  'rust'
-  'rust-bindgen'
-  'spirv-tools'
-
   # intel-clc deps
   'python-ply'
   'spirv-llvm-translator'
@@ -119,8 +113,7 @@ build() {
     -D gallium-extra-hud=true
     -D gallium-nine=true
     -D gallium-omx=bellagio
-    -D gallium-opencl=icd
-    -D gallium-rusticl=true
+    -D gallium-rusticl=false
     -D gallium-va=enabled
     -D gallium-vdpau=enabled
     -D gallium-xa=enabled
@@ -183,28 +176,6 @@ package_vulkan-mesa-layers() {
   _install fakeinstall/usr/share/vulkan/implicit_layer.d
   _install fakeinstall/$_libdir/libVkLayer_*.so
   _install fakeinstall/usr/bin/mesa-overlay-control.py
-
-  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
-}
-
-package_opencl-mesa() {
-  pkgdesc="OpenCL support with clover and rusticl for mesa drivers"
-  depends=(
-    'clang'
-    'expat'
-    'libdrm'
-    'libelf'
-    'zstd'
-
-    'libclc'
-    'spirv-llvm-translator'
-  )
-  optdepends=('opencl-headers: headers necessary for OpenCL development')
-  provides=('opencl-driver')
-
-  _install fakeinstall/etc/OpenCL
-  _install fakeinstall/$_libdir/lib*OpenCL*
-  _install fakeinstall/$_libdir/gallium-pipe
 
   install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
 }
