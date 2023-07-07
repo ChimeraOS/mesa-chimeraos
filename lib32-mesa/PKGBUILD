@@ -8,6 +8,7 @@ pkgname=(
   'lib32-vulkan-mesa-layers'
   'lib32-vulkan-intel'
   'lib32-vulkan-radeon'
+  'lib32-vulkan-swrast'
   'lib32-libva-mesa-driver'
   'lib32-mesa-vdpau'
   'lib32-mesa'
@@ -95,7 +96,7 @@ build() {
     -D b_ndebug=true
     -D dri3=enabled
     -D egl=enabled
-    -D gallium-drivers=r300,r600,radeonsi,nouveau,i915,iris,crocus,zink
+    -D gallium-drivers=r300,r600,radeonsi,nouveau,swrast,i915,iris,crocus,zink
     -D gallium-extra-hud=true
     -D gallium-nine=true
     -D gallium-omx=disabled
@@ -119,7 +120,7 @@ build() {
     -D shared-glapi=enabled
     -D valgrind=disabled
     -D video-codecs=vc1dec,h264dec,h264enc,h265dec,h265enc
-    -D vulkan-drivers=amd,intel,intel_hasvk
+    -D vulkan-drivers=amd,intel,intel_hasvk,swrast
     -D vulkan-layers=device-select,intel-nullhw,overlay
   )
 
@@ -210,6 +211,29 @@ package_lib32-vulkan-radeon() {
   rm -v fakeinstall/usr/share/drirc.d/00-radv-defaults.conf
   _install fakeinstall/usr/share/vulkan/icd.d/radeon_icd*.json
   _install fakeinstall/$_libdir/libvulkan_radeon.so
+
+  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
+}
+
+package_lib32-vulkan-swrast() {
+  pkgdesc="Vulkan software rasteriser driver (32-bit)"
+  depends=(
+    'lib32-libdrm'
+    'lib32-libunwind'
+    'lib32-libx11'
+    'lib32-libxshmfence'
+    'lib32-llvm-libs'
+    'lib32-systemd'
+    'lib32-wayland'
+    'lib32-zstd'
+  )
+  optdepends=('lib32-vulkan-mesa-layers: additional vulkan layers')
+  conflicts=('lib32-vulkan-mesa')
+  replaces=('lib32-vulkan-mesa')
+  provides=('lib32-vulkan-driver')
+
+  _install fakeinstall/usr/share/vulkan/icd.d/lvp_icd*.json
+  _install fakeinstall/$_libdir/libvulkan_lvp.so
 
   install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
 }
