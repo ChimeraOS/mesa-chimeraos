@@ -6,9 +6,11 @@
 pkgbase=lib32-mesa
 pkgname=(
   'lib32-vulkan-mesa-layers'
+  'lib32-opencl-mesa'
   'lib32-vulkan-intel'
   'lib32-vulkan-radeon'
   'lib32-vulkan-swrast'
+  'lib32-vulkan-virtio'
   'lib32-libva-mesa-driver'
   'lib32-mesa-vdpau'
   'lib32-mesa'
@@ -99,10 +101,11 @@ build() {
     -D b_ndebug=true
     -D dri3=enabled
     -D egl=enabled
-    -D gallium-drivers=r300,r600,radeonsi,nouveau,swrast,i915,iris,crocus,zink
+    -D gallium-drivers=r300,r600,radeonsi,nouveau,virgl,svga,swrast,i915,iris,crocus,zink
     -D gallium-extra-hud=true
     -D gallium-nine=true
     -D gallium-omx=disabled
+    -D gallium-opencl=icd
     -D gallium-rusticl=false
     -D gallium-va=enabled
     -D gallium-vdpau=enabled
@@ -123,7 +126,7 @@ build() {
     -D shared-glapi=enabled
     -D valgrind=disabled
     -D video-codecs=vc1dec,h264dec,h264enc,h265dec,h265enc
-    -D vulkan-drivers=amd,intel,intel_hasvk,swrast
+    -D vulkan-drivers=amd,intel,intel_hasvk,swrast,virtio-experimental
     -D vulkan-layers=device-select,intel-nullhw,overlay
   )
 
@@ -171,6 +174,29 @@ package_lib32-vulkan-mesa-layers() {
   rm -rv fakeinstall/usr/share/vulkan/implicit_layer.d
   _install fakeinstall/$_libdir/libVkLayer_*.so
   rm -v fakeinstall/usr/bin/mesa-overlay-control.py
+
+  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
+}
+
+package_lib32-opencl-mesa() {
+  pkgdesc="OpenCL support for AMD/ATI Radeon mesa drivers (32-bit)"
+  depends=(
+    'lib32-clang'
+    'lib32-expat'
+    'lib32-libdrm'
+    'lib32-libelf'
+    'lib32-zstd'
+
+    'libclc'
+    'spirv-llvm-translator'
+    'opencl-mesa'
+  )
+  optdepends=('opencl-headers: headers necessary for OpenCL development')
+  provides=('lib32-opencl-driver')
+
+  rm -rv fakeinstall/etc/OpenCL
+  _install fakeinstall/$_libdir/lib*OpenCL*
+  _install fakeinstall/$_libdir/gallium-pipe
 
   install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
 }
@@ -241,6 +267,24 @@ package_lib32-vulkan-swrast() {
   install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
 }
 
+package_lib32-vulkan-virtio() {
+  pkgdesc="Venus Vulkan mesa driver for Virtual Machines (32-bit)"
+  depends=(
+    'lib32-libdrm'
+    'lib32-libx11'
+    'lib32-libxshmfence'
+    'lib32-systemd'
+    'lib32-wayland'
+    'lib32-zstd'
+  )
+  optdepends=('lib32-vulkan-mesa-layers: additional vulkan layers')
+  provides=('lib32-vulkan-driver')
+
+  _install fakeinstall/usr/share/vulkan/icd.d/virtio_icd*.json
+  _install fakeinstall/$_libdir/libvulkan_virtio.so
+
+  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
+}
 
 package_lib32-libva-mesa-driver() {
   pkgdesc="VA-API drivers (32-bit)"
