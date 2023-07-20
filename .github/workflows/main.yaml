@@ -56,7 +56,7 @@ jobs:
       - name: Install dependencies (lib32-mesa)
         run: |
           pacman -S --noconfirm $(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' /home/build/lib32-mesa/.SRCINFO)
-          pacman --noconfirm -U --overwrite '*' /tmp/mesa-chimeraos/*.pkg.tar.zst
+          pacman --noconfirm -U --overwrite '*' /tmp/mesa-chimeraos/*.pkg.tar.zst --ask=4
       - name: Build lib32-mesa-chimeraos package
         id: build-lib32-mesa-package
         shell: bash
