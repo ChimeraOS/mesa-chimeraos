@@ -16,7 +16,7 @@ pkgname=(
   'mesa-vdpau'
   'mesa'
 )
-_mesaver=23.2.0
+_mesaver=23.2.0-rc2
 pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 pkgdesc="An open-source implementation of the OpenGL specification"
