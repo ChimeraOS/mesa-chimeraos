@@ -1,4 +1,4 @@
-From 7fff413cd673e253431c470d0cae740a75d08511 Mon Sep 17 00:00:00 2001
+From 58f7632462a673f456ae3047ba353af2cd788525 Mon Sep 17 00:00:00 2001
 From: Bas Nieuwenhuizen <bas@basnieuwenhuizen.nl>
 Date: Mon, 21 Feb 2022 18:43:54 +0100
 Subject: [PATCH] STEAMOS: Dynamic swapchain override for gamescope limiter
@@ -6,15 +6,23 @@ Subject: [PATCH] STEAMOS: Dynamic swapchain override for gamescope limiter
 ---
  src/loader/loader_dri3_helper.c | 42 +++++++++++++++++++++++++++++++--
  src/loader/loader_dri3_helper.h |  1 +
- src/loader/meson.build          |  2 +-
- src/vulkan/wsi/wsi_common_x11.c | 37 +++++++++++++++++++++++++++++
- 4 files changed, 79 insertions(+), 3 deletions(-)
+ src/loader/meson.build          |  1 +
+ src/vulkan/wsi/wsi_common_x11.c | 38 +++++++++++++++++++++++++++++
+ 4 files changed, 80 insertions(+), 2 deletions(-)
 
 diff --git a/src/loader/loader_dri3_helper.c b/src/loader/loader_dri3_helper.c
-index 32135770e9d..abc79dda97e 100644
+index 11bf6472894..3b2a57ceb14 100644
 --- a/src/loader/loader_dri3_helper.c
 +++ b/src/loader/loader_dri3_helper.c
-@@ -289,6 +289,30 @@ dri3_update_max_num_back(struct loader_dri3_drawable *draw)
+@@ -37,6 +37,7 @@
+ #include "loader_dri_helper.h"
+ #include "loader_dri3_helper.h"
+ #include "util/macros.h"
++#include "util/simple_mtx.h"
+ #include "drm-uapi/drm_fourcc.h"
+ 
+ /**
+@@ -288,6 +289,30 @@ dri3_update_max_num_back(struct loader_dri3_drawable *draw)
     }
  }
  
@@ -45,7 +53,7 @@ index 32135770e9d..abc79dda97e 100644
  void
  loader_dri3_set_swap_interval(struct loader_dri3_drawable *draw, int interval)
  {
-@@ -303,10 +327,12 @@ loader_dri3_set_swap_interval(struct loader_dri3_drawable *draw, int interval)
+@@ -302,10 +327,12 @@ loader_dri3_set_swap_interval(struct loader_dri3_drawable *draw, int interval)
      * PS. changing from value A to B and A < B won't cause swap out of order but
      * may still gets wrong target_msc value at the beginning.
      */
@@ -60,20 +68,19 @@ index 32135770e9d..abc79dda97e 100644
  }
  
  static void
-@@ -438,6 +464,12 @@ loader_dri3_drawable_init(xcb_connection_t *conn,
+@@ -436,6 +463,11 @@ loader_dri3_drawable_init(xcb_connection_t *conn,
+ 
     draw->swap_interval = dri_get_initial_swap_interval(draw->dri_screen_render_gpu,
                                                         draw->ext->config);
- 
 +   draw->orig_swap_interval = draw->swap_interval;
 +
 +   unsigned gamescope_override = gamescope_swapchain_override();
 +   if (gamescope_override == 1)
 +      draw->swap_interval = 1;
-+
+ 
     dri3_update_max_num_back(draw);
  
-    /* Create a new drawable */
-@@ -1092,6 +1124,12 @@ loader_dri3_swap_buffers_msc(struct loader_dri3_drawable *draw,
+@@ -1091,6 +1123,12 @@ loader_dri3_swap_buffers_msc(struct loader_dri3_drawable *draw,
     if (draw->type == LOADER_DRI3_DRAWABLE_WINDOW) {
        dri3_fence_reset(draw->conn, back);
  
@@ -99,23 +106,22 @@ index 1fd340bd145..b8f5eaaf190 100644
     struct loader_dri3_extensions *ext;
     const struct loader_dri3_vtable *vtable;
 diff --git a/src/loader/meson.build b/src/loader/meson.build
-index 35f9991ba2f..154cf809a69 100644
+index 81779a33a31..faabb54991c 100644
 --- a/src/loader/meson.build
 +++ b/src/loader/meson.build
-@@ -29,7 +29,7 @@ if with_platform_x11 and with_dri3
+@@ -29,6 +29,7 @@ if with_platform_x11 and with_dri3
      dependencies : [
-       idep_mesautil,
        dep_libdrm, dep_xcb_dri3, dep_xcb_present, dep_xcb_sync, dep_xshmfence,
--      dep_xcb_xfixes,
+       dep_xcb_xfixes,
 +      dep_xcb_xfixes, dep_xcb_xrandr, idep_mesautil
      ],
      build_by_default : false,
    )
 diff --git a/src/vulkan/wsi/wsi_common_x11.c b/src/vulkan/wsi/wsi_common_x11.c
-index 2dff27afa64..bd688679fd0 100644
+index a42355971a7..5ed89cba8d0 100644
 --- a/src/vulkan/wsi/wsi_common_x11.c
 +++ b/src/vulkan/wsi/wsi_common_x11.c
-@@ -48,6 +48,7 @@
+@@ -42,6 +42,7 @@
  #include "util/hash_table.h"
  #include "util/os_file.h"
  #include "util/os_time.h"
@@ -123,7 +129,7 @@ index 2dff27afa64..bd688679fd0 100644
  #include "util/u_debug.h"
  #include "util/u_thread.h"
  #include "util/xmlconfig.h"
-@@ -214,6 +215,30 @@ wsi_x11_detect_xwayland(xcb_connection_t *conn,
+@@ -198,6 +199,30 @@ wsi_x11_detect_xwayland(xcb_connection_t *conn,
     return is_xwayland;
  }
  
@@ -154,15 +160,16 @@ index 2dff27afa64..bd688679fd0 100644
  static struct wsi_x11_connection *
  wsi_x11_connection_create(struct wsi_device *wsi_dev,
                            xcb_connection_t *conn)
-@@ -1106,6 +1131,7 @@ struct x11_swapchain {
+@@ -1074,6 +1099,8 @@ struct x11_swapchain {
+    /* Total number of images returned to application in AcquireNextImage. */
     uint64_t                                     present_poll_acquire_count;
  
-    struct wsi_x11_vk_surface                   *surface;
 +   VkPresentModeKHR                             orig_present_mode;
- 
++
     struct x11_image                             images[0];
  };
-@@ -1843,6 +1869,12 @@ x11_queue_present(struct wsi_swapchain *anv_chain,
+ VK_DEFINE_NONDISP_HANDLE_CASTS(x11_swapchain, base.base, VkSwapchainKHR,
+@@ -1802,6 +1829,12 @@ x11_queue_present(struct wsi_swapchain *anv_chain,
     if (chain->status < 0)
        return chain->status;
  
@@ -175,7 +182,7 @@ index 2dff27afa64..bd688679fd0 100644
     if (damage && damage->pRectangles && damage->rectangleCount > 0 &&
        damage->rectangleCount <= MAX_DAMAGE_RECTS) {
        xcb_rectangle_t rects[MAX_DAMAGE_RECTS];
-@@ -2603,6 +2635,10 @@ x11_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+@@ -2554,6 +2587,10 @@ x11_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
     xcb_void_cookie_t cookie;
     VkResult result;
     VkPresentModeKHR present_mode = wsi_swapchain_get_present_mode(wsi_device, pCreateInfo);
@@ -186,7 +193,7 @@ index 2dff27afa64..bd688679fd0 100644
  
     assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR);
  
-@@ -2733,6 +2769,7 @@ x11_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+@@ -2666,6 +2703,7 @@ x11_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
     chain->base.wait_for_present = x11_wait_for_present;
     chain->base.release_images = x11_release_images;
     chain->base.present_mode = present_mode;
@@ -195,5 +202,5 @@ index 2dff27afa64..bd688679fd0 100644
     chain->conn = conn;
     chain->window = window;
 -- 
-2.41.0
+GitLab
 
