@@ -93,6 +93,11 @@ validpgpkeys=('8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'  # Emil Velikov <emil.l
 prepare() {
   cd mesa-$_mesaver
 
+  # Include package release in version string so Chromium invalidates
+  # its GPU cache; otherwise it can cause pages to render incorrectly.
+  # https://bugs.launchpad.net/ubuntu/+source/chromium-browser/+bug/2020604
+  echo "$epoch:$pkgver-$pkgrel" >VERSION
+
   local src
   for src in "${source[@]}"; do
     src="${src%%::*}"
