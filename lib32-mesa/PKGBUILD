@@ -16,7 +16,7 @@ pkgname=(
   'lib32-mesa-vdpau'
   'lib32-mesa'
 )
-_mesaver=23.1.8
+_mesaver=23.2.0-rc4
 pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
@@ -67,14 +67,14 @@ source=(
   LICENSE
   0001-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch
 )
-sha256sums=('45434ff91a709844130a3174d9c0ef39c6b50725b2bb0c13e736f36134db14ad'
+sha256sums=('7c11fefbff7b6a992ec95b5764133101ad41052c8e0217829150383b74ea3085'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
-            'c0cca468bfeece01d3102099853b35925a5896e24c5c865f4101e994ab85e7f2')
-b2sums=('43825c936f0dca4bc7e954cf7f8afc9566fb26d23969a9f60279a279504464b4eee966f5db34602489fb659942d11629675a1ef44493020925047bbd8cd7f0d7'
+            '6a7ade8c331e2e98c3945aa71df0e928e60e4180750844b601e6332b3278cb12')
+b2sums=('482cf5402f2d7ad4393c602008bfce0ea26acd12261ece3290c6a6fab6f5c61b85aea55ab37d5730f0395dce86d258ff3fb313427ea07905f9508888241b57c6'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
-        '6e4e24a79c92dc8e75d69af2fc0b42ddcf7170d88d67b77c6aab56baf9a53f6c4f8cf8feb011243425da9bc3112a981fa222c4c6cdbc9cf5fe74f2246c420f7c')
+        '26b748638849549727bd36d7eeffd44348de7da296cfc67c5f9fabfeb3a4682dc7a1cad96379176b3820951c640e9f7d0f2c55cad6374c599c1a747423c84051')
 validpgpkeys=('8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'  # Emil Velikov <emil.l.velikov@gmail.com>
               '946D09B5E4C9845E63075FF1D961C596A7203456'  # Andres Gomez <tanty@igalia.com>
               'E3E8F480C52ADD73B278EE78E1ECBE07D7D70895'  # Juan Antonio Suárez Romero (Igalia, S.L.) <jasuarez@igalia.com>
@@ -132,7 +132,7 @@ build() {
     -D shared-glapi=enabled
     -D valgrind=disabled
     -D video-codecs=vc1dec,h264dec,h264enc,h265dec,h265enc
-    -D vulkan-drivers=amd,intel,intel_hasvk,swrast,virtio-experimental
+    -D vulkan-drivers=amd,intel,intel_hasvk,swrast,virtio
     -D vulkan-layers=device-select,intel-nullhw,overlay
   )
 
