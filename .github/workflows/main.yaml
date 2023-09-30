@@ -34,6 +34,12 @@ jobs:
           pacman-key --populate archlinux
           mkdir -p /etc/gnupg && echo "auto-key-retrieve" >> /etc/gnupg/gpg.conf
           echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> /etc/pacman.conf
+      # Upstream issue: see https://gitlab.freedesktop.org/mesa/mesa/-/issues/9908
+      - name: Downgrade meson
+        run: |
+          pacman -S wget
+          wget https://archive.archlinux.org/packages/m/meson/meson-1.2.1-1-any.pkg.tar.zst
+          pacman -U meson-1.2.1-1-any.pkg.tar.zst
       - name: Generate .SRCINFO
         run: |
           su build bash -c "cd /home/build/mesa && makepkg --printsrcinfo > /home/build/mesa/.SRCINFO"
