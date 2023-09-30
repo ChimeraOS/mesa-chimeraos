@@ -16,7 +16,7 @@ pkgname=(
   'lib32-mesa-vdpau'
   'lib32-mesa'
 )
-_mesaver=23.2.0-rc4
+_mesaver=23.2.1
 pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
@@ -67,11 +67,11 @@ source=(
   LICENSE
   0001-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch
 )
-sha256sums=('7c11fefbff7b6a992ec95b5764133101ad41052c8e0217829150383b74ea3085'
+sha256sums=('64de0616fc2d801f929ab1ac2a4f16b3e2783c4309a724c8a259b20df8bbc1cc'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
             '6a7ade8c331e2e98c3945aa71df0e928e60e4180750844b601e6332b3278cb12')
-b2sums=('482cf5402f2d7ad4393c602008bfce0ea26acd12261ece3290c6a6fab6f5c61b85aea55ab37d5730f0395dce86d258ff3fb313427ea07905f9508888241b57c6'
+b2sums=('51e44c2e9b7dfe17cf4cb7252e169109d03a006caa8ec34036fb594c0c44e9278d0088170894c1a9debdea911f746470e1d256576e0635cae5c3e670ab49161b'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
         '26b748638849549727bd36d7eeffd44348de7da296cfc67c5f9fabfeb3a4682dc7a1cad96379176b3820951c640e9f7d0f2c55cad6374c599c1a747423c84051')
@@ -248,6 +248,7 @@ package_lib32-vulkan-intel() {
     'lib32-libxshmfence'
     'lib32-systemd'
     'lib32-wayland'
+    'lib32-xcb-util-keysyms'
     'lib32-zstd'
   )
   optdepends=('lib32-vulkan-mesa-layers: additional vulkan layers')
@@ -269,6 +270,7 @@ package_lib32-vulkan-radeon() {
     'lib32-llvm-libs'
     'lib32-systemd'
     'lib32-wayland'
+    'lib32-xcb-util-keysyms'
     'lib32-zstd'
 
     'vulkan-radeon'
@@ -293,6 +295,7 @@ package_lib32-vulkan-swrast() {
     'lib32-llvm-libs'
     'lib32-systemd'
     'lib32-wayland'
+    'lib32-xcb-util-keysyms'
     'lib32-zstd'
   )
   optdepends=('lib32-vulkan-mesa-layers: additional vulkan layers')
@@ -314,6 +317,7 @@ package_lib32-vulkan-virtio() {
     'lib32-libxshmfence'
     'lib32-systemd'
     'lib32-wayland'
+    'lib32-xcb-util-keysyms'
     'lib32-zstd'
   )
   optdepends=('lib32-vulkan-mesa-layers: additional vulkan layers')
