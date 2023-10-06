@@ -16,9 +16,9 @@ pkgname=(
   'lib32-mesa-vdpau'
   'lib32-mesa'
 )
-_mesaver=23.1.8
+_mesaver=23.1.9
 pkgver=${_mesaver//-/.}.chos1
-pkgrel=2
+pkgrel=1
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
 url="https://www.mesa3d.org/"
 arch=('x86_64')
@@ -67,11 +67,11 @@ source=(
   LICENSE
   0001-gamescope-limiter.patch
 )
-sha256sums=('45434ff91a709844130a3174d9c0ef39c6b50725b2bb0c13e736f36134db14ad'
+sha256sums=('295ba27c28146ed09214e8ce79afa1659edf9d142decc3c91f804552d64f7510'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
             'a52d664628fb6487ba2a3c3945155052dbe99b77b26792508226fb5804ab7c66')
-b2sums=('43825c936f0dca4bc7e954cf7f8afc9566fb26d23969a9f60279a279504464b4eee966f5db34602489fb659942d11629675a1ef44493020925047bbd8cd7f0d7'
+b2sums=('a4386398841476f6e69031043091cbbf0afff1ef9523e7d6216b1acc49fa8afbe5270802c78d951fee42dd6c8268bc515ed1236de4ce47a5d90e6bdd1ff16b92'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
         'd49f6959ec89982ae7b9c9b35fe86d0c4829c30150b0aeb259c8456ad3872bc52e580c2a8651d67eeaf746597c3d90002330942eb75a472585c44831ca0a3443')
