@@ -16,7 +16,7 @@ pkgname=(
   'lib32-mesa-vdpau'
   'lib32-mesa'
 )
-_mesaver=23.3.0-rc3
+_mesaver=23.3.0-rc4
 pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
@@ -67,11 +67,11 @@ source=(
   LICENSE
   0001-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch
 )
-sha256sums=('99c9168fa247151cbc7de421504501d812ed450a309aede43023aa69def6cf44'
+sha256sums=('ecf0f1748ade2e3d5a0196a736ddd8c4802f527278e8962d2fafddfa0e630ac3'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
             '6a7ade8c331e2e98c3945aa71df0e928e60e4180750844b601e6332b3278cb12')
-b2sums=('a54ac02b99bf00e4dae34938fd37d5314ae0fd9dee4b2f8928119bcc5a6b4e00add8ad61da3569b9993b37014433fb38a66d945e77184d86aaf0cd79e8afb42b'
+b2sums=('e52912990f31a22a2c3492690331c695d66783ad583bc5e13ebca6c6328b7a679fb7f008f2a5fcd374f98887dfa012fe6daad31fb9a686142376215920418be5'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
         '26b748638849549727bd36d7eeffd44348de7da296cfc67c5f9fabfeb3a4682dc7a1cad96379176b3820951c640e9f7d0f2c55cad6374c599c1a747423c84051')
