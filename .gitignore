@@ -1,0 +1,7 @@
+/mesa/src/**
+/mesa/pkg/**
+/mesa/*.tar.*
+
+/lib32-mesa/src/**
+/lib32-mesa/pkg/**
+/lib32-mesa/*.tar.*
