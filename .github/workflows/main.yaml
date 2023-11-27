@@ -57,6 +57,11 @@ jobs:
         run: |
           pacman -S --noconfirm $(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' /home/build/lib32-mesa/.SRCINFO)
           pacman --noconfirm -U --overwrite '*' /tmp/mesa-chimeraos/*.pkg.tar.zst --ask=4
+      - name: Downgrade meson
+        run: |
+          pacman -S --noconfirm wget
+          wget https://archive.archlinux.org/packages/m/meson/meson-1.2.3-1-any.pkg.tar.zst
+          pacman -U --noconfirm meson-1.2.3-1-any.pkg.tar.zst
       - name: Build lib32-mesa-chimeraos package
         id: build-lib32-mesa-package
         shell: bash
