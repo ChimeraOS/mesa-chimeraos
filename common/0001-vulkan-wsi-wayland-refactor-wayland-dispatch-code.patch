@@ -1,0 +1,566 @@
+From 679a6fba87a279539e380333ba745f7bd59a8ac3 Mon Sep 17 00:00:00 2001
+From: Derek Foreman <derek.foreman@collabora.com>
+Date: Wed, 20 Sep 2023 10:40:33 -0500
+Subject: [PATCH 1/4] vulkan/wsi/wayland: refactor wayland dispatch code
+
+We currently have two similar but different bits of code to dispatch
+wayland event queues. Pull out as much common code as possible.
+
+Signed-off-by: Derek Foreman <derek.foreman@collabora.com>
+---
+ src/vulkan/wsi/wsi_common_wayland.c | 399 +++++++++++++++-------------
+ 1 file changed, 208 insertions(+), 191 deletions(-)
+
+diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
+index 21fe7a57c72..45b1b80634f 100644
+--- a/src/vulkan/wsi/wsi_common_wayland.c
++++ b/src/vulkan/wsi/wsi_common_wayland.c
+@@ -96,6 +96,11 @@ struct wsi_wl_display {
+    struct wl_display *wl_display;
+    /* Actually a proxy wrapper around the event queue */
+    struct wl_display *wl_display_wrapper;
++
++   pthread_mutex_t wl_fd_lock;
++   pthread_cond_t wl_fd_reader_finished;
++   bool wl_fd_read_in_progress;
++
+    struct wl_event_queue *queue;
+ 
+    struct wl_shm *wl_shm;
+@@ -157,6 +162,8 @@ struct wsi_wl_surface {
+ struct wsi_wl_swapchain {
+    struct wsi_swapchain base;
+ 
++   struct wl_event_queue *queue;
++
+    struct wsi_wl_surface *wsi_wl_surface;
+    struct wp_tearing_control_v1 *tearing_control;
+ 
+@@ -180,10 +187,7 @@ struct wsi_wl_swapchain {
+       pthread_mutex_t lock; /* protects all members */
+       uint64_t max_completed;
+       struct wl_list outstanding_list;
+-      pthread_cond_t list_advanced;
+-      struct wl_event_queue *queue;
+       struct wp_presentation *wp_presentation;
+-      bool dispatch_in_progress;
+    } present_ids;
+ 
+    struct wsi_wl_image images[0];
+@@ -208,6 +212,135 @@ find_format(struct u_vector *formats, VkFormat format)
+    return NULL;
+ }
+ 
++static int
++wsi_wl_display_read_queue_with_timeout_internal(struct wsi_wl_display *wsi_wl_display,
++                                                struct wl_event_queue *queue,
++                                                uint64_t atimeout)
++{
++   uint64_t current_time_nsec;
++   struct timespec rel_timeout, end_time, current_time;
++   int ret;
++
++   if (wl_display_prepare_read_queue(wsi_wl_display->wl_display, queue) < 0) {
++      /* Another thread might have read events for our queue already. Go
++       * back to dispatch them.
++       */
++      pthread_mutex_unlock(&wsi_wl_display->wl_fd_lock);
++      if (errno == EAGAIN)
++         return VK_SUCCESS;
++
++      return VK_ERROR_OUT_OF_DATE_KHR;
++   }
++
++   wsi_wl_display->wl_fd_read_in_progress = true;
++   pthread_mutex_unlock(&wsi_wl_display->wl_fd_lock);
++
++   while (1) {
++      struct pollfd pollfd = {
++         .fd = wl_display_get_fd(wsi_wl_display->wl_display),
++         .events = POLLIN
++      };
++
++      current_time_nsec = os_time_get_nano();
++      if (current_time_nsec > atimeout) {
++         rel_timeout.tv_sec = 0;
++         rel_timeout.tv_nsec = 0;
++      } else {
++         timespec_from_nsec(&current_time, current_time_nsec);
++         timespec_from_nsec(&end_time, atimeout);
++         timespec_sub(&rel_timeout, &end_time, &current_time);
++      }
++
++      ret = ppoll(&pollfd, 1, &rel_timeout, NULL);
++      if (ret < 0) {
++         if (errno == EINTR || errno == EAGAIN)
++            continue;
++
++         ret = VK_ERROR_OUT_OF_DATE_KHR;
++      } else if (ret == 0)
++         ret = VK_TIMEOUT;
++      else
++         ret = VK_SUCCESS;
++
++      break;
++   }
++
++   if (ret != VK_SUCCESS) {
++         wl_display_cancel_read(wsi_wl_display->wl_display);
++   } else {
++      ret = wl_display_read_events(wsi_wl_display->wl_display);
++      if (ret != 0)
++        ret = VK_ERROR_OUT_OF_DATE_KHR;
++   }
++
++   pthread_mutex_lock(&wsi_wl_display->wl_fd_lock);
++   wsi_wl_display->wl_fd_read_in_progress = false;
++   pthread_cond_broadcast(&wsi_wl_display->wl_fd_reader_finished);
++   return ret;
++}
++
++static int
++wsi_wl_display_dispatch_queue_with_timeout(struct wsi_wl_display *wsi_wl_display,
++                                           struct wl_event_queue *queue,
++                                           uint64_t timeout)
++{
++   int err;
++   int n_events;
++   uint64_t atimeout, now;
++
++   if (timeout == UINT64_MAX)
++      atimeout = timeout;
++   else
++      atimeout = os_time_get_absolute_timeout(timeout);
++
++   while (1) {
++      n_events = wl_display_dispatch_queue_pending(wsi_wl_display->wl_display,
++                                                   queue);
++      if (n_events > 0) {
++         err = VK_SUCCESS;
++         break;
++      }
++      pthread_mutex_lock(&wsi_wl_display->wl_fd_lock);
++
++      if (wsi_wl_display->wl_fd_read_in_progress) {
++         struct timespec end_time;
++
++         timespec_from_nsec(&end_time, atimeout);
++
++         err = pthread_cond_timedwait(&wsi_wl_display->wl_fd_reader_finished,
++                                      &wsi_wl_display->wl_fd_lock,
++                                      &end_time);
++         if (err) {
++            if (errno == ETIMEDOUT)
++               err = VK_TIMEOUT;
++            else
++               err = VK_ERROR_OUT_OF_DATE_KHR;
++         } else {
++            /* We don't know if the other thread actually
++             * dispatched anything, so let the caller decide
++             * whether it should continue.
++             */
++            err = VK_INCOMPLETE;
++         }
++      } else {
++         err = wsi_wl_display_read_queue_with_timeout_internal(wsi_wl_display,
++                                                               queue,
++                                                               timeout);
++      }
++
++      pthread_mutex_unlock(&wsi_wl_display->wl_fd_lock);
++
++      now = os_time_get_nano();
++      if (now > atimeout) {
++         err = VK_TIMEOUT;
++         break;
++      }
++
++   }
++
++   return err;
++}
++
+ static struct wsi_wl_format *
+ wsi_wl_display_add_vk_format(struct wsi_wl_display *display,
+                              struct u_vector *formats,
+@@ -833,6 +966,8 @@ wsi_wl_display_finish(struct wsi_wl_display *display)
+       wl_proxy_wrapper_destroy(display->wl_display_wrapper);
+    if (display->queue)
+       wl_event_queue_destroy(display->queue);
++   pthread_mutex_destroy(&display->wl_fd_lock);
++   pthread_cond_destroy(&display->wl_fd_reader_finished);
+ }
+ 
+ static VkResult
+@@ -851,6 +986,11 @@ wsi_wl_display_init(struct wsi_wayland *wsi_wl,
+    display->wl_display = wl_display;
+    display->sw = sw;
+ 
++   display->wl_fd_read_in_progress = false;
++   pthread_mutex_init(&display->wl_fd_lock, NULL);
++   if (!wsi_init_pthread_cond_monotonic(&display->wl_fd_reader_finished))
++      goto fail;
++
+    display->queue = wl_display_create_queue(wl_display);
+    if (!display->queue) {
+       result = VK_ERROR_OUT_OF_HOST_MEMORY;
+@@ -951,6 +1091,7 @@ fail_registry:
+       wl_registry_destroy(registry);
+ 
+ fail:
++   pthread_mutex_destroy(&display->wl_fd_lock);
+    wsi_wl_display_finish(display);
+    return result;
+ }
+@@ -1675,19 +1816,15 @@ wsi_wl_swapchain_wait_for_present(struct wsi_swapchain *wsi_chain,
+                                   uint64_t timeout)
+ {
+    struct wsi_wl_swapchain *chain = (struct wsi_wl_swapchain *)wsi_chain;
+-   struct wl_display *wl_display = chain->wsi_wl_surface->display->wl_display;
+-   struct timespec end_time;
+-   int wl_fd = wl_display_get_fd(wl_display);
+-   VkResult ret;
+-   int err;
++   uint64_t end_time, time_left, now;
++   int ret;
++   bool expired = false;
++   bool finished;
+ 
+-   uint64_t atimeout;
+-   if (timeout == 0 || timeout == UINT64_MAX)
+-      atimeout = timeout;
++   if (timeout == UINT64_MAX)
++      end_time = timeout;
+    else
+-      atimeout = os_time_get_absolute_timeout(timeout);
+-
+-   timespec_from_nsec(&end_time, atimeout);
++      end_time = os_time_get_absolute_timeout(timeout);
+ 
+    /* Need to observe that the swapchain semaphore has been unsignalled,
+     * as this is guaranteed when a present is complete. */
+@@ -1703,141 +1840,45 @@ wsi_wl_swapchain_wait_for_present(struct wsi_swapchain *wsi_chain,
+       return VK_SUCCESS;
+    }
+ 
++   while (1) {
++      ret = wl_display_dispatch_queue_pending(chain->wsi_wl_surface->display->wl_display,
++                                              chain->queue);
++      if (ret < 0)
++         return VK_ERROR_OUT_OF_DATE_KHR;
++
+    /* PresentWait can be called concurrently.
+     * If there is contention on this mutex, it means there is currently a dispatcher in flight holding the lock.
+     * The lock is only held while there is forward progress processing events from Wayland,
+     * so there should be no problem locking without timeout.
+     * We would like to be able to support timeout = 0 to query the current max_completed count.
+     * A timedlock with no timeout can be problematic in that scenario. */
+-   err = pthread_mutex_lock(&chain->present_ids.lock);
+-   if (err != 0)
+-      return VK_ERROR_OUT_OF_DATE_KHR;
+-
+-   if (chain->present_ids.max_completed >= present_id) {
++      pthread_mutex_lock(&chain->present_ids.lock);
++      finished = chain->present_ids.max_completed >= present_id;
+       pthread_mutex_unlock(&chain->present_ids.lock);
+-      return VK_SUCCESS;
+-   }
+-
+-   /* Someone else is dispatching events; wait for them to update the chain
+-    * status and wake us up. */
+-   while (chain->present_ids.dispatch_in_progress) {
+-      /* We only own the lock when the wait succeeds. */
+-      err = pthread_cond_timedwait(&chain->present_ids.list_advanced,
+-                                   &chain->present_ids.lock, &end_time);
+-
+-      if (err == ETIMEDOUT) {
+-         pthread_mutex_unlock(&chain->present_ids.lock);
+-         return VK_TIMEOUT;
+-      } else if (err != 0) {
+-         pthread_mutex_unlock(&chain->present_ids.lock);
+-         return VK_ERROR_OUT_OF_DATE_KHR;
+-      }
+-
+-      if (chain->present_ids.max_completed >= present_id) {
+-         pthread_mutex_unlock(&chain->present_ids.lock);
++      if (finished)
+          return VK_SUCCESS;
+-      }
+-
+-      /* Whoever was previously dispatching the events isn't anymore, so we
+-       * will take over and fall through below. */
+-      if (!chain->present_ids.dispatch_in_progress)
+-         break;
+-   }
+-
+-   assert(!chain->present_ids.dispatch_in_progress);
+-   chain->present_ids.dispatch_in_progress = true;
+-
+-   /* Whether or not we were dispatching the events before, we are now: pull
+-    * all the new events from our event queue, post them, and wake up everyone
+-    * else who might be waiting. */
+-   while (1) {
+-      ret = wl_display_dispatch_queue_pending(wl_display, chain->present_ids.queue);
+-      if (ret < 0) {
+-         ret = VK_ERROR_OUT_OF_DATE_KHR;
+-         goto relinquish_dispatch;
+-      }
+-
+-      /* Some events dispatched: check the new completions. */
+-      if (ret > 0) {
+-         /* Completed our own present; stop our own dispatching and let
+-          * someone else pick it up. */
+-         if (chain->present_ids.max_completed >= present_id) {
+-            ret = VK_SUCCESS;
+-            goto relinquish_dispatch;
+-         }
+-
+-         /* Wake up other waiters who may have been unblocked by the events
+-          * we just read. */
+-         pthread_cond_broadcast(&chain->present_ids.list_advanced);
+-      }
+-
+-      /* Check for timeout, and relinquish the dispatch to another thread
+-       * if we're over our budget. */
+-      uint64_t current_time_nsec = os_time_get_nano();
+-      if (current_time_nsec > atimeout) {
+-         ret = VK_TIMEOUT;
+-         goto relinquish_dispatch;
+-      }
+-
+-      /* To poll and read from WL fd safely, we must be cooperative.
+-       * See wl_display_prepare_read_queue in https://wayland.freedesktop.org/docs/html/apb.html */
+-
+-      /* Try to read events from the server. */
+-      ret = wl_display_prepare_read_queue(wl_display, chain->present_ids.queue);
+-      if (ret < 0) {
+-         /* Another thread might have read events for our queue already. Go
+-          * back to dispatch them.
+-          */
+-         if (errno == EAGAIN)
+-            continue;
+-         ret = VK_ERROR_OUT_OF_DATE_KHR;
+-         goto relinquish_dispatch;
+-      }
+ 
+-      /* Drop the lock around poll, so people can wait whilst we sleep. */
+-      pthread_mutex_unlock(&chain->present_ids.lock);
+-
+-      struct pollfd pollfd = {
+-         .fd = wl_fd,
+-         .events = POLLIN
+-      };
+-      struct timespec current_time, rel_timeout;
+-      timespec_from_nsec(&current_time, current_time_nsec);
+-      timespec_sub(&rel_timeout, &end_time, &current_time);
+-      ret = ppoll(&pollfd, 1, &rel_timeout, NULL);
++      if (expired)
++         return VK_TIMEOUT;
+ 
+-      /* Re-lock after poll; either we're dispatching events under the lock or
+-       * bouncing out from an error also under the lock. We can't use timedlock
+-       * here because we need to acquire to clear dispatch_in_progress. */
+-      pthread_mutex_lock(&chain->present_ids.lock);
++      now = os_time_get_nano();
++      if (now > end_time)
++         time_left = 0;
++      else
++         time_left = end_time - now;
+ 
+-      if (ret <= 0) {
+-         int lerrno = errno;
+-         wl_display_cancel_read(wl_display);
+-         if (ret < 0) {
+-            /* If ppoll() was interrupted, try again. */
+-            if (lerrno == EINTR || lerrno == EAGAIN)
+-               continue;
+-            ret = VK_ERROR_OUT_OF_DATE_KHR;
+-            goto relinquish_dispatch;
+-         }
+-         assert(ret == 0);
++      ret = wsi_wl_display_dispatch_queue_with_timeout(chain->wsi_wl_surface->display,
++                                                       chain->queue,
++                                                       time_left);
++      if (ret == VK_INCOMPLETE)
+          continue;
+-      }
+ 
+-      ret = wl_display_read_events(wl_display);
+-      if (ret < 0) {
+-         ret = VK_ERROR_OUT_OF_DATE_KHR;
+-         goto relinquish_dispatch;
+-      }
+-   }
++      if (ret != VK_SUCCESS && ret != VK_TIMEOUT)
++         return ret;
+ 
+-relinquish_dispatch:
+-   assert(chain->present_ids.dispatch_in_progress);
+-   chain->present_ids.dispatch_in_progress = false;
+-   pthread_cond_broadcast(&chain->present_ids.list_advanced);
+-   pthread_mutex_unlock(&chain->present_ids.lock);
+-   return ret;
++      if (time_left == 0)
++         expired = true;
++   }
+ }
+ 
+ static VkResult
+@@ -1847,19 +1888,18 @@ wsi_wl_swapchain_acquire_next_image(struct wsi_swapchain *wsi_chain,
+ {
+    struct wsi_wl_swapchain *chain = (struct wsi_wl_swapchain *)wsi_chain;
+    struct wsi_wl_surface *wsi_wl_surface = chain->wsi_wl_surface;
+-   struct timespec start_time, end_time;
+-   struct timespec rel_timeout;
+-   int wl_fd = wl_display_get_fd(wsi_wl_surface->display->wl_display);
+-
+-   timespec_from_nsec(&rel_timeout, info->timeout);
++   uint64_t end_time, time_left, now;
++   bool expired = false;
++   int ret;
+ 
+-   clock_gettime(CLOCK_MONOTONIC, &start_time);
+-   timespec_add(&end_time, &rel_timeout, &start_time);
++   if (info->timeout == UINT64_MAX)
++      end_time = info->timeout;
++   else
++      end_time = os_time_get_absolute_timeout(info->timeout);
+ 
+    while (1) {
+-      /* Try to dispatch potential events. */
+-      int ret = wl_display_dispatch_queue_pending(wsi_wl_surface->display->wl_display,
+-                                                  wsi_wl_surface->display->queue);
++      ret = wl_display_dispatch_queue_pending(wsi_wl_surface->display->wl_display,
++                                              wsi_wl_surface->display->queue);
+       if (ret < 0)
+          return VK_ERROR_OUT_OF_DATE_KHR;
+ 
+@@ -1873,46 +1913,26 @@ wsi_wl_swapchain_acquire_next_image(struct wsi_swapchain *wsi_chain,
+          }
+       }
+ 
+-      /* Check for timeout. */
+-      struct timespec current_time;
+-      clock_gettime(CLOCK_MONOTONIC, &current_time);
+-      if (timespec_after(&current_time, &end_time))
+-         return (info->timeout ? VK_TIMEOUT : VK_NOT_READY);
++      if (expired)
++         return info->timeout ? VK_TIMEOUT : VK_NOT_READY;
+ 
+-      /* Try to read events from the server. */
+-      ret = wl_display_prepare_read_queue(wsi_wl_surface->display->wl_display,
+-                                          wsi_wl_surface->display->queue);
+-      if (ret < 0) {
+-         /* Another thread might have read events for our queue already. Go
+-          * back to dispatch them.
+-          */
+-         if (errno == EAGAIN)
+-            continue;
+-         return VK_ERROR_OUT_OF_DATE_KHR;
+-      }
++      now = os_time_get_nano();
++      if (now > end_time)
++         time_left = 0;
++      else
++         time_left = end_time - now;
+ 
+-      struct pollfd pollfd = {
+-         .fd = wl_fd,
+-         .events = POLLIN
+-      };
+-      timespec_sub(&rel_timeout, &end_time, &current_time);
+-      ret = ppoll(&pollfd, 1, &rel_timeout, NULL);
+-      if (ret <= 0) {
+-         int lerrno = errno;
+-         wl_display_cancel_read(wsi_wl_surface->display->wl_display);
+-         if (ret < 0) {
+-            /* If ppoll() was interrupted, try again. */
+-            if (lerrno == EINTR || lerrno == EAGAIN)
+-               continue;
+-            return VK_ERROR_OUT_OF_DATE_KHR;
+-         }
+-         assert(ret == 0);
++      ret = wsi_wl_display_dispatch_queue_with_timeout(wsi_wl_surface->display,
++                                                       wsi_wl_surface->display->queue,
++                                                       time_left);
++      if (ret == VK_ERROR_OUT_OF_DATE_KHR)
++         return ret;
++
++      if (ret == VK_INCOMPLETE)
+          continue;
+-      }
+ 
+-      ret = wl_display_read_events(wsi_wl_surface->display->wl_display);
+-      if (ret < 0)
+-         return VK_ERROR_OUT_OF_DATE_KHR;
++      if (ret == VK_TIMEOUT)
++         expired = true;
+    }
+ }
+ 
+@@ -1933,9 +1953,10 @@ presentation_handle_presented(void *data,
+ {
+    struct wsi_wl_present_id *id = data;
+ 
+-   /* present_ids.lock already held around dispatch */
++   pthread_mutex_lock(&id->chain->present_ids.lock);
+    if (id->present_id > id->chain->present_ids.max_completed)
+       id->chain->present_ids.max_completed = id->present_id;
++   pthread_mutex_unlock(&id->chain->present_ids.lock);
+ 
+    wp_presentation_feedback_destroy(feedback);
+    wl_list_remove(&id->link);
+@@ -1948,9 +1969,10 @@ presentation_handle_discarded(void *data,
+ {
+    struct wsi_wl_present_id *id = data;
+ 
+-   /* present_ids.lock already held around dispatch */
++   pthread_mutex_lock(&id->chain->present_ids.lock);
+    if (id->present_id > id->chain->present_ids.max_completed)
+       id->chain->present_ids.max_completed = id->present_id;
++   pthread_mutex_unlock(&id->chain->present_ids.lock);
+ 
+    wp_presentation_feedback_destroy(feedback);
+    wl_list_remove(&id->link);
+@@ -2198,8 +2220,6 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
+       chain->wsi_wl_surface->chain = NULL;
+ 
+    if (chain->present_ids.wp_presentation) {
+-      assert(!chain->present_ids.dispatch_in_progress);
+-
+       /* In VK_EXT_swapchain_maintenance1 there is no requirement to wait for all present IDs to be complete.
+        * Waiting for the swapchain fence is enough.
+        * Just clean up anything user did not wait for. */
+@@ -2211,7 +2231,6 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
+       }
+ 
+       wl_proxy_wrapper_destroy(chain->present_ids.wp_presentation);
+-      pthread_cond_destroy(&chain->present_ids.list_advanced);
+       pthread_mutex_destroy(&chain->present_ids.lock);
+    }
+ 
+@@ -2372,18 +2391,16 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+    chain->num_drm_modifiers = num_drm_modifiers;
+    chain->drm_modifiers = drm_modifiers;
+ 
++   chain->queue = wl_display_create_queue(chain->wsi_wl_surface->display->wl_display);
++
+    if (chain->wsi_wl_surface->display->wp_presentation_notwrapped) {
+-      if (!wsi_init_pthread_cond_monotonic(&chain->present_ids.list_advanced))
+-         goto fail;
+       pthread_mutex_init(&chain->present_ids.lock, NULL);
+ 
+       wl_list_init(&chain->present_ids.outstanding_list);
+-      chain->present_ids.queue =
+-            wl_display_create_queue(chain->wsi_wl_surface->display->wl_display);
+       chain->present_ids.wp_presentation =
+             wl_proxy_create_wrapper(chain->wsi_wl_surface->display->wp_presentation_notwrapped);
+       wl_proxy_set_queue((struct wl_proxy *) chain->present_ids.wp_presentation,
+-                         chain->present_ids.queue);
++                         chain->queue);
+    }
+ 
+    chain->fifo_ready = true;
+-- 
+2.41.0
+

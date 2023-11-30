@@ -1,0 +1,156 @@
+From 81fc8fa6dbcf9b3335e8d417f92c3078c4c773b4 Mon Sep 17 00:00:00 2001
+From: Simon Ser <contact@emersion.fr>
+Date: Sat, 25 Nov 2023 16:25:58 +0100
+Subject: [PATCH 3/4] hack: rip out commit-timing-v1
+
+---
+ src/egl/wayland/wayland-drm/meson.build |  6 +++---
+ src/vulkan/wsi/meson.build              |  2 +-
+ src/vulkan/wsi/wsi_common_wayland.c     | 24 ++----------------------
+ 3 files changed, 6 insertions(+), 26 deletions(-)
+
+diff --git a/src/egl/wayland/wayland-drm/meson.build b/src/egl/wayland/wayland-drm/meson.build
+index 309196f7ee0..f0feab51461 100644
+--- a/src/egl/wayland/wayland-drm/meson.build
++++ b/src/egl/wayland/wayland-drm/meson.build
+@@ -60,7 +60,7 @@ libwayland_drm = static_library(
+ wp_dir = dep_wl_protocols.get_variable(pkgconfig : 'pkgdatadir', internal : 'pkgdatadir')
+ wp_protos = {
+   'commit-queue-v1': 'staging/commit-queue/commit-queue-v1.xml',
+-  'commit-timing-v1': 'staging/commit-timing/commit-timing-v1.xml',
++  #'commit-timing-v1': 'staging/commit-timing/commit-timing-v1.xml',
+   'linux-dmabuf-unstable-v1': 'unstable/linux-dmabuf/linux-dmabuf-unstable-v1.xml',
+   'presentation-time': 'stable/presentation-time/presentation-time.xml',
+   'tearing-control-v1': 'staging/tearing-control/tearing-control-v1.xml',
+@@ -69,13 +69,13 @@ wp_files = {}
+ foreach name, xml : wp_protos
+   code = custom_target(
+     name + '-protocol.c',
+-    input : join_paths(wp_dir, xml),
++    input : wp_dir / xml,
+     output : name + '-protocol.c',
+     command : [prog_wl_scanner, wl_scanner_arg, '@INPUT@', '@OUTPUT@'],
+   )
+   header = custom_target(
+     name + '-client-protocol.h',
+-    input : join_paths(wp_dir, xml),
++    input : wp_dir / xml,
+     output : name + '-client-protocol.h',
+     command : [prog_wl_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+   )
+diff --git a/src/vulkan/wsi/meson.build b/src/vulkan/wsi/meson.build
+index 83ad71f06fa..dba95387975 100644
+--- a/src/vulkan/wsi/meson.build
++++ b/src/vulkan/wsi/meson.build
+@@ -32,7 +32,7 @@ endif
+ if with_platform_wayland
+   files_vulkan_wsi += files('wsi_common_wayland.c')
+   files_vulkan_wsi += wp_files['commit-queue-v1']
+-  files_vulkan_wsi += wp_files['commit-timing-v1']
++  #files_vulkan_wsi += wp_files['commit-timing-v1']
+   files_vulkan_wsi += wp_files['linux-dmabuf-unstable-v1']
+   files_vulkan_wsi += wp_files['presentation-time']
+   files_vulkan_wsi += wp_files['tearing-control-v1']
+diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
+index 258d209b57e..3fdf0387497 100644
+--- a/src/vulkan/wsi/wsi_common_wayland.c
++++ b/src/vulkan/wsi/wsi_common_wayland.c
+@@ -42,7 +42,6 @@
+ #include "wsi_common_entrypoints.h"
+ #include "wsi_common_private.h"
+ #include "commit-queue-v1-client-protocol.h"
+-#include "commit-timing-v1-client-protocol.h"
+ #include "linux-dmabuf-unstable-v1-client-protocol.h"
+ #include "presentation-time-client-protocol.h"
+ #include "tearing-control-v1-client-protocol.h"
+@@ -116,7 +115,6 @@ struct wsi_wl_display {
+    struct wp_presentation *wp_presentation_notwrapped;
+ 
+    struct wp_commit_queue_manager_v1 *commit_queue_manager;
+-   struct wp_commit_timing_manager_v1 *commit_timing_manager;
+ 
+    struct wsi_wayland *wsi_wl;
+ 
+@@ -173,7 +171,6 @@ struct wsi_wl_swapchain {
+    struct wsi_wl_surface *wsi_wl_surface;
+    struct wp_tearing_control_v1 *tearing_control;
+    struct wp_commit_queue_v1 *commit_queue;
+-   struct wp_commit_timer_v1 *commit_timer;
+    bool can_timestamp;
+ 
+    struct wl_callback *frame;
+@@ -947,9 +944,6 @@ registry_handle_global(void *data, struct wl_registry *registry,
+    } else if (strcmp(interface, wp_tearing_control_v1_interface.name) == 0) {
+       display->tearing_control_manager =
+          wl_registry_bind(registry, name, &wp_tearing_control_manager_v1_interface, 1);
+-   } else if (strcmp(interface, wp_commit_timing_manager_v1_interface.name) == 0) {
+-      display->commit_timing_manager =
+-         wl_registry_bind(registry, name, &wp_commit_timing_manager_v1_interface, 1);
+    } else if (strcmp(interface, wp_commit_queue_manager_v1_interface.name) == 0) {
+       display->commit_queue_manager =
+          wl_registry_bind(registry, name, &wp_commit_queue_manager_v1_interface, 1);
+@@ -981,8 +975,6 @@ wsi_wl_display_finish(struct wsi_wl_display *display)
+       wp_presentation_destroy(display->wp_presentation_notwrapped);
+    if (display->commit_queue_manager)
+       wp_commit_queue_manager_v1_destroy(display->commit_queue_manager);
+-   if (display->commit_timing_manager)
+-      wp_commit_timing_manager_v1_destroy(display->commit_timing_manager);
+    if (display->tearing_control_manager)
+       wp_tearing_control_manager_v1_destroy(display->tearing_control_manager);
+    if (display->wl_display_wrapper)
+@@ -2073,9 +2065,6 @@ set_timestamp(struct wsi_wl_swapchain *chain)
+    }
+ 
+    timespec_from_nsec(&target_ts, target);
+-   wp_commit_timer_v1_set_timestamp(chain->commit_timer,
+-                                    target_ts.tv_sec >> 32, target_ts.tv_sec,
+-                                    target_ts.tv_nsec);
+ 
+    wp_commit_queue_v1_set_queue_mode(chain->commit_queue,
+                                      WP_COMMIT_QUEUE_V1_QUEUE_MODE_FIFO);
+@@ -2091,6 +2080,7 @@ wsi_wl_swapchain_queue_present(struct wsi_swapchain *wsi_chain,
+    struct wsi_wl_swapchain *chain = (struct wsi_wl_swapchain *)wsi_chain;
+    struct wsi_wl_surface *wsi_wl_surface = chain->wsi_wl_surface;
+    bool mode_fifo = chain->base.present_mode == VK_PRESENT_MODE_FIFO_KHR;
++   //fprintf(stderr, "FIFO = %d\n", mode_fifo);
+ 
+    if (chain->buffer_type == WSI_WL_BUFFER_SHM_MEMCPY) {
+       struct wsi_wl_image *image = &chain->images[image_index];
+@@ -2327,9 +2317,6 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
+    if (chain->commit_queue)
+       wp_commit_queue_v1_destroy(chain->commit_queue);
+ 
+-   if (chain->commit_timer)
+-      wp_commit_timer_v1_destroy(chain->commit_timer);
+-
+    wsi_swapchain_finish(&chain->base);
+ }
+ 
+@@ -2389,10 +2376,6 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+          old_chain->commit_queue = NULL;
+          old_chain->can_timestamp = false;
+       }
+-      if (old_chain->commit_timer) {
+-         wp_commit_timer_v1_destroy(old_chain->commit_timer);
+-         old_chain->commit_timer = NULL;
+-      }
+    }
+ 
+    /* Take ownership of the wsi_wl_surface */
+@@ -2510,12 +2493,9 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+ 
+    chain->legacy_fifo_ready = true;
+    struct wsi_wl_display *dpy = chain->wsi_wl_surface->display;
+-   if (dpy->commit_queue_manager &&
+-       dpy->commit_timing_manager) {
++   if (dpy->commit_queue_manager) {
+       chain->commit_queue = wp_commit_queue_manager_v1_get_queue_controller(dpy->commit_queue_manager,
+                                                                             chain->wsi_wl_surface->surface);
+-      chain->commit_timer = wp_commit_timing_manager_v1_get_timer(dpy->commit_timing_manager,
+-                                                                  chain->wsi_wl_surface->surface);
+       chain->can_timestamp = true;
+    }
+ 
+-- 
+2.41.0
+

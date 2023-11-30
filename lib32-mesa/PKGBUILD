@@ -16,7 +16,7 @@ pkgname=(
   'lib32-mesa-vdpau'
   'lib32-mesa'
 )
-_mesaver=23.3.0-rc5
+_mesaver=23.3.0
 pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
@@ -66,15 +66,28 @@ source=(
   https://mesa.freedesktop.org/archive/mesa-${_mesaver}.tar.xz{,.sig}
   LICENSE
   0001-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch
+  0001-vulkan-wsi-wayland-refactor-wayland-dispatch-code.patch
+  0002-vulkan-wsi-wayland-Use-commit_timing-commit_queue-pr.patch
+  0003-hack-rip-out-commit-timing-v1.patch
+  0004-wsi-Use-vendored-gamescope-commit-queue-v1-protocol.patch
 )
-sha256sums=('e8aace72be125bba3220b5a9c31663a63ed708bb8d049c425223e93ddd3843ea'
+
+sha256sums=('50f729dd60ed6335b989095baad81ef5edf7cfdd4b4b48b9b955917cb07d69c5'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
-            '6a7ade8c331e2e98c3945aa71df0e928e60e4180750844b601e6332b3278cb12')
-b2sums=('844eb3dacc6f579f1a7bff74fc20ec22021ac33dcdd716488487e66e9ef8c6be4a5eaf7260628eec58baa55fd70bfe4a6223e83ea8b163d6e16dd8677af3c7e3'
+            '6a7ade8c331e2e98c3945aa71df0e928e60e4180750844b601e6332b3278cb12'
+            'f134e115ac10aa51970d247b6363d21b9302aec5c80c4189c79292f040e0bc72'
+            '2666c2b41afaf72e317d14ea2bfb3cc256ab253ae357b38d07ad2113de1a0ff5'
+            '313272b390ece41b31424ee9de6469d311919e2492dca2b9f7fac726cdc7d172'
+            '177bf6b78a1078073a565815594c66ad491c071867c11e1c5fc9e61fbbf137ce')
+b2sums=('1b87d15cbe1b4c761653b7042c46eac3036f08dfcf3a0a81aa7bf6c1c0c402b05f37ce8da9d88df72e1745d66a648c2b8c161b04bf558107f548f6d8167cc798'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
-        '26b748638849549727bd36d7eeffd44348de7da296cfc67c5f9fabfeb3a4682dc7a1cad96379176b3820951c640e9f7d0f2c55cad6374c599c1a747423c84051')
+        '26b748638849549727bd36d7eeffd44348de7da296cfc67c5f9fabfeb3a4682dc7a1cad96379176b3820951c640e9f7d0f2c55cad6374c599c1a747423c84051'
+        'b85a41fbf8504bce6207ab007603fac88353e986b8bdbbe72ba81a1e76b8714b39862a0335a6943cecdcfd3ef2e8974b1038c2c5a5c9265fc7c6a0970e151a04'
+        '8441d2a028cff6a6c5ccca3515ea2ae8a14b3cc0bf6c2acfc8b7e8a57645a3b0b4bbfa3a5195048e65cd970c803e9b12fbc2d7effb619044fa51643a681082d1'
+        'de2821bc271bcfd4f1fe3aacc33bb7395d24c4ba0edd6b2b46c11f2f718d6a61fca7ca780c7582fbf97184c38015e3b656dc9857e7421d32f1d05d7737623f9e'
+        '52040b34083101cc2e2dc341367a6a025e68f0b4a8f926ae6da98ad0c2c411fffefc97117eb768ceb6e449026a9a813f12e24c59972ae945a7e6c53fd74ae9c5')
 validpgpkeys=('8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'  # Emil Velikov <emil.l.velikov@gmail.com>
               '946D09B5E4C9845E63075FF1D961C596A7203456'  # Andres Gomez <tanty@igalia.com>
               'E3E8F480C52ADD73B278EE78E1ECBE07D7D70895'  # Juan Antonio Suárez Romero (Igalia, S.L.) <jasuarez@igalia.com>
