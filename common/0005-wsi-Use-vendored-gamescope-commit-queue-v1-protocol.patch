@@ -1,7 +1,7 @@
-From b846fe2a5da92e8529b9786ae1d770b1499ef757 Mon Sep 17 00:00:00 2001
+From fb4bebab7c67d8731e10826c25dc9b52e8fbd251 Mon Sep 17 00:00:00 2001
 From: Joshua Ashton <joshua@froggi.es>
 Date: Wed, 29 Nov 2023 11:06:51 +0000
-Subject: [PATCH 4/4] wsi: Use vendored gamescope-commit-queue-v1 protocol
+Subject: [PATCH 5/5] wsi: Use vendored gamescope-commit-queue-v1 protocol
 
 ---
  .../wayland-drm/gamescope-commit-queue-v1.xml | 181 ++++++++++++++++++
@@ -199,7 +199,7 @@ index 00000000000..d460e0bc10f
 +  </interface>
 +</protocol>
 diff --git a/src/egl/wayland/wayland-drm/meson.build b/src/egl/wayland/wayland-drm/meson.build
-index f0feab51461..12c14801db1 100644
+index 83a63385274..caba51b22a7 100644
 --- a/src/egl/wayland/wayland-drm/meson.build
 +++ b/src/egl/wayland/wayland-drm/meson.build
 @@ -59,7 +59,7 @@ libwayland_drm = static_library(
@@ -249,7 +249,7 @@ index dba95387975..fb0fab69ac6 100644
    files_vulkan_wsi += wp_files['linux-dmabuf-unstable-v1']
    files_vulkan_wsi += wp_files['presentation-time']
 diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
-index 3fdf0387497..3009954ec56 100644
+index 7af1409b130..d21cae54f9b 100644
 --- a/src/vulkan/wsi/wsi_common_wayland.c
 +++ b/src/vulkan/wsi/wsi_common_wayland.c
 @@ -41,7 +41,7 @@
@@ -280,7 +280,7 @@ index 3fdf0387497..3009954ec56 100644
  
     struct wl_callback *frame;
 @@ -944,9 +944,9 @@ registry_handle_global(void *data, struct wl_registry *registry,
-    } else if (strcmp(interface, wp_tearing_control_v1_interface.name) == 0) {
+    } else if (strcmp(interface, wp_tearing_control_manager_v1_interface.name) == 0) {
        display->tearing_control_manager =
           wl_registry_bind(registry, name, &wp_tearing_control_manager_v1_interface, 1);
 -   } else if (strcmp(interface, wp_commit_queue_manager_v1_interface.name) == 0) {
@@ -339,5 +339,5 @@ index 3fdf0387497..3009954ec56 100644
        chain->can_timestamp = true;
     }
 -- 
-2.41.0
+2.43.0
 

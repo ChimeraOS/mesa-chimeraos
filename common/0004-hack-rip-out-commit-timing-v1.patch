@@ -1,16 +1,16 @@
-From 81fc8fa6dbcf9b3335e8d417f92c3078c4c773b4 Mon Sep 17 00:00:00 2001
+From 738d09089bbe457ab9d25c07d6d98f176fd9045d Mon Sep 17 00:00:00 2001
 From: Simon Ser <contact@emersion.fr>
 Date: Sat, 25 Nov 2023 16:25:58 +0100
-Subject: [PATCH 3/4] hack: rip out commit-timing-v1
+Subject: [PATCH 4/5] hack: rip out commit-timing-v1
 
 ---
- src/egl/wayland/wayland-drm/meson.build |  6 +++---
+ src/egl/wayland/wayland-drm/meson.build |  2 +-
  src/vulkan/wsi/meson.build              |  2 +-
  src/vulkan/wsi/wsi_common_wayland.c     | 24 ++----------------------
- 3 files changed, 6 insertions(+), 26 deletions(-)
+ 3 files changed, 4 insertions(+), 24 deletions(-)
 
 diff --git a/src/egl/wayland/wayland-drm/meson.build b/src/egl/wayland/wayland-drm/meson.build
-index 309196f7ee0..f0feab51461 100644
+index 8b6044f09e5..83a63385274 100644
 --- a/src/egl/wayland/wayland-drm/meson.build
 +++ b/src/egl/wayland/wayland-drm/meson.build
 @@ -60,7 +60,7 @@ libwayland_drm = static_library(
@@ -22,22 +22,6 @@ index 309196f7ee0..f0feab51461 100644
    'linux-dmabuf-unstable-v1': 'unstable/linux-dmabuf/linux-dmabuf-unstable-v1.xml',
    'presentation-time': 'stable/presentation-time/presentation-time.xml',
    'tearing-control-v1': 'staging/tearing-control/tearing-control-v1.xml',
-@@ -69,13 +69,13 @@ wp_files = {}
- foreach name, xml : wp_protos
-   code = custom_target(
-     name + '-protocol.c',
--    input : join_paths(wp_dir, xml),
-+    input : wp_dir / xml,
-     output : name + '-protocol.c',
-     command : [prog_wl_scanner, wl_scanner_arg, '@INPUT@', '@OUTPUT@'],
-   )
-   header = custom_target(
-     name + '-client-protocol.h',
--    input : join_paths(wp_dir, xml),
-+    input : wp_dir / xml,
-     output : name + '-client-protocol.h',
-     command : [prog_wl_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
-   )
 diff --git a/src/vulkan/wsi/meson.build b/src/vulkan/wsi/meson.build
 index 83ad71f06fa..dba95387975 100644
 --- a/src/vulkan/wsi/meson.build
@@ -52,7 +36,7 @@ index 83ad71f06fa..dba95387975 100644
    files_vulkan_wsi += wp_files['presentation-time']
    files_vulkan_wsi += wp_files['tearing-control-v1']
 diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
-index 258d209b57e..3fdf0387497 100644
+index 86de6ca190c..7af1409b130 100644
 --- a/src/vulkan/wsi/wsi_common_wayland.c
 +++ b/src/vulkan/wsi/wsi_common_wayland.c
 @@ -42,7 +42,6 @@
@@ -80,7 +64,7 @@ index 258d209b57e..3fdf0387497 100644
  
     struct wl_callback *frame;
 @@ -947,9 +944,6 @@ registry_handle_global(void *data, struct wl_registry *registry,
-    } else if (strcmp(interface, wp_tearing_control_v1_interface.name) == 0) {
+    } else if (strcmp(interface, wp_tearing_control_manager_v1_interface.name) == 0) {
        display->tearing_control_manager =
           wl_registry_bind(registry, name, &wp_tearing_control_manager_v1_interface, 1);
 -   } else if (strcmp(interface, wp_commit_timing_manager_v1_interface.name) == 0) {
@@ -152,5 +136,5 @@ index 258d209b57e..3fdf0387497 100644
     }
  
 -- 
-2.41.0
+2.43.0
 

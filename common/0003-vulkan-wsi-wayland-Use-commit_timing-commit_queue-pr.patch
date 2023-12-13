@@ -1,7 +1,7 @@
-From f8d469724bd293d69056a76cd59de958f4afb268 Mon Sep 17 00:00:00 2001
+From 71111b7e67088b2c32db73565f79a3840a2d69e5 Mon Sep 17 00:00:00 2001
 From: Derek Foreman <derek.foreman@collabora.com>
 Date: Fri, 10 Nov 2023 07:25:35 -0600
-Subject: [PATCH 2/4] vulkan/wsi/wayland: Use commit_timing/commit_queue
+Subject: [PATCH 3/5] vulkan/wsi/wayland: Use commit_timing/commit_queue
  protocol for FIFO
 
 The commit_timing protocol allows us to set a presentation timestamp,
@@ -19,7 +19,7 @@ Signed-off-by: Derek Foreman <derek.foreman@collabora.com>
  3 files changed, 130 insertions(+), 12 deletions(-)
 
 diff --git a/src/egl/wayland/wayland-drm/meson.build b/src/egl/wayland/wayland-drm/meson.build
-index 442d7acd9b4..309196f7ee0 100644
+index ac822acec67..8b6044f09e5 100644
 --- a/src/egl/wayland/wayland-drm/meson.build
 +++ b/src/egl/wayland/wayland-drm/meson.build
 @@ -59,6 +59,8 @@ libwayland_drm = static_library(
@@ -45,7 +45,7 @@ index 9d0db011767..83ad71f06fa 100644
    files_vulkan_wsi += wp_files['presentation-time']
    files_vulkan_wsi += wp_files['tearing-control-v1']
 diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
-index 45b1b80634f..258d209b57e 100644
+index 9d410cf8fe1..86de6ca190c 100644
 --- a/src/vulkan/wsi/wsi_common_wayland.c
 +++ b/src/vulkan/wsi/wsi_common_wayland.c
 @@ -41,6 +41,8 @@
@@ -105,7 +105,7 @@ index 45b1b80634f..258d209b57e 100644
  
     struct wsi_wl_image images[0];
 @@ -934,6 +947,12 @@ registry_handle_global(void *data, struct wl_registry *registry,
-    } else if (strcmp(interface, wp_tearing_control_v1_interface.name) == 0) {
+    } else if (strcmp(interface, wp_tearing_control_manager_v1_interface.name) == 0) {
        display->tearing_control_manager =
           wl_registry_bind(registry, name, &wp_tearing_control_manager_v1_interface, 1);
 +   } else if (strcmp(interface, wp_commit_timing_manager_v1_interface.name) == 0) {
@@ -333,5 +333,5 @@ index 45b1b80634f..258d209b57e 100644
     for (uint32_t i = 0; i < chain->base.image_count; i++) {
        result = wsi_wl_image_init(chain, &chain->images[i],
 -- 
-2.41.0
+2.43.0
 

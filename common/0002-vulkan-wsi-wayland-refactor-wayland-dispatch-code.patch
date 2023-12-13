@@ -1,7 +1,7 @@
-From 679a6fba87a279539e380333ba745f7bd59a8ac3 Mon Sep 17 00:00:00 2001
+From 60a5e81909b35028bc2c74b4c394dde64f706b03 Mon Sep 17 00:00:00 2001
 From: Derek Foreman <derek.foreman@collabora.com>
 Date: Wed, 20 Sep 2023 10:40:33 -0500
-Subject: [PATCH 1/4] vulkan/wsi/wayland: refactor wayland dispatch code
+Subject: [PATCH 2/5] vulkan/wsi/wayland: refactor wayland dispatch code
 
 We currently have two similar but different bits of code to dispatch
 wayland event queues. Pull out as much common code as possible.
@@ -12,7 +12,7 @@ Signed-off-by: Derek Foreman <derek.foreman@collabora.com>
  1 file changed, 208 insertions(+), 191 deletions(-)
 
 diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
-index 21fe7a57c72..45b1b80634f 100644
+index 94b9217cbdf..9d410cf8fe1 100644
 --- a/src/vulkan/wsi/wsi_common_wayland.c
 +++ b/src/vulkan/wsi/wsi_common_wayland.c
 @@ -96,6 +96,11 @@ struct wsi_wl_display {
@@ -562,5 +562,5 @@ index 21fe7a57c72..45b1b80634f 100644
  
     chain->fifo_ready = true;
 -- 
-2.41.0
+2.43.0
 

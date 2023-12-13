@@ -66,32 +66,28 @@ makedepends=(
 source=(
   https://mesa.freedesktop.org/archive/mesa-${_mesaver}.tar.xz{,.sig}
   LICENSE
-  0001-enable-dispatch.patch
-  0001-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch
-  0001-vulkan-wsi-wayland-refactor-wayland-dispatch-code.patch
-  0002-vulkan-wsi-wayland-Use-commit_timing-commit_queue-pr.patch
-  0003-hack-rip-out-commit-timing-v1.patch
-  0004-wsi-Use-vendored-gamescope-commit-queue-v1-protocol.patch
+  0001-radv-Enable-compute-dispatch-tunneling.patch
+  0002-vulkan-wsi-wayland-refactor-wayland-dispatch-code.patch
+  0003-vulkan-wsi-wayland-Use-commit_timing-commit_queue-pr.patch
+  0004-hack-rip-out-commit-timing-v1.patch
+  0005-wsi-Use-vendored-gamescope-commit-queue-v1-protocol.patch
 )
-
 sha256sums=('6e48126d70fdb3f20ffeb246ca0c2e41ffdc835f0663a03d4526b8bf5db41de6'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
-            '9baf7950185b6cc6de22b77dcc562145460e859a4a700510e1c38496a6c4342f'
-            '6a7ade8c331e2e98c3945aa71df0e928e60e4180750844b601e6332b3278cb12'
-            'f134e115ac10aa51970d247b6363d21b9302aec5c80c4189c79292f040e0bc72'
-            '2666c2b41afaf72e317d14ea2bfb3cc256ab253ae357b38d07ad2113de1a0ff5'
-            '313272b390ece41b31424ee9de6469d311919e2492dca2b9f7fac726cdc7d172'
-            '177bf6b78a1078073a565815594c66ad491c071867c11e1c5fc9e61fbbf137ce')
+            '59951fd6a77eb63e2fde4470fa93d0413862a3d3de943def327214be0498f499'
+            '97fc2fddd9afbc91e4dde5be3c1ddcbbcc433ae0d57b2c952c5ac73a372f52c3'
+            '21ff1a220c8741891fee77c766f6688da518c2ee0a9039b4d7310cef35b644ed'
+            'b0f51fc9cbd68850a73b858619e3fc4147e75484b80e98f9c854c246864ba68c'
+            '621a6da07df923d84a89633c122c037f46f579cda6e3c779678c5e85f5c1b272')
 b2sums=('73696281868e5eba6493cc34786a6c30eaf256bed2495444be9a1a5ebf1a0d4b8f00bcc3fb91ce9de3ac8ff23663e41cab17b8fe42b1048366c8e9b95aefa905'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
-        '03a52b1b01682e3cafd5b53b1673d1c5579fabcb3988316b18a2e9c2952b60d8db5f30aac25b94f95fdace39f49981e8022fe92d30512deab2208ebbde47e837'
-        '26b748638849549727bd36d7eeffd44348de7da296cfc67c5f9fabfeb3a4682dc7a1cad96379176b3820951c640e9f7d0f2c55cad6374c599c1a747423c84051'
-        'b85a41fbf8504bce6207ab007603fac88353e986b8bdbbe72ba81a1e76b8714b39862a0335a6943cecdcfd3ef2e8974b1038c2c5a5c9265fc7c6a0970e151a04'
-        '8441d2a028cff6a6c5ccca3515ea2ae8a14b3cc0bf6c2acfc8b7e8a57645a3b0b4bbfa3a5195048e65cd970c803e9b12fbc2d7effb619044fa51643a681082d1'
-        'de2821bc271bcfd4f1fe3aacc33bb7395d24c4ba0edd6b2b46c11f2f718d6a61fca7ca780c7582fbf97184c38015e3b656dc9857e7421d32f1d05d7737623f9e'
-        '52040b34083101cc2e2dc341367a6a025e68f0b4a8f926ae6da98ad0c2c411fffefc97117eb768ceb6e449026a9a813f12e24c59972ae945a7e6c53fd74ae9c5')
+        '5a6b6ba26692f4cd3cbec42597e35accde45cae99690017ec2f9ac8ce75ae9cc7a812179cd2e68c0fb324568e5f8ee1fff4d718f109ea655cec6ad67abc203ac'
+        'e6c37a0c0ba91b2dd4c7242c945166b5cb56834c846ab68598e198e31c9b80db0de70121e6452ed9bbd841e25eb59845c30557d2ac60021c070bc1f7fd0dd6ea'
+        'bd51d6af44e913ce225c26920418e1ff1768876a916fea94954958eb18375e48aa9f01ef4a486f26c75b7d6ab4b7b83059885acd3ec6867c6b15764436bd919b'
+        'd48a86ac7470fba6b71f4d523a4a909dc550456dec4bb60b0e81be99c437355339ec5b9bca39a5ef5ec1d3a6956f56e24111befa5955682b88bf570f388f415c'
+        'b153e21177d4b4a3fb31df7e0adda3a499234884fada8f85e8346439429123499050efa347809745474aac9b1043fb14539404dbebe7f81cb46d14d332fcdfc5')
 validpgpkeys=('8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'  # Emil Velikov <emil.l.velikov@gmail.com>
               '946D09B5E4C9845E63075FF1D961C596A7203456'  # Andres Gomez <tanty@igalia.com>
               'E3E8F480C52ADD73B278EE78E1ECBE07D7D70895'  # Juan Antonio Suárez Romero (Igalia, S.L.) <jasuarez@igalia.com>
