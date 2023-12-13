@@ -16,8 +16,8 @@ pkgname=(
   'mesa-vdpau'
   'mesa'
 )
-_mesaver=23.3.0
-pkgver=${_mesaver//-/.}.chos2
+_mesaver=23.3.1
+pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 epoch=1
 pkgdesc="An open-source implementation of the OpenGL specification"
@@ -82,7 +82,7 @@ source=(
   0003-hack-rip-out-commit-timing-v1.patch
   0004-wsi-Use-vendored-gamescope-commit-queue-v1-protocol.patch
 )
-sha256sums=('50f729dd60ed6335b989095baad81ef5edf7cfdd4b4b48b9b955917cb07d69c5'
+sha256sums=('6e48126d70fdb3f20ffeb246ca0c2e41ffdc835f0663a03d4526b8bf5db41de6'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
             '9baf7950185b6cc6de22b77dcc562145460e859a4a700510e1c38496a6c4342f'
@@ -91,7 +91,7 @@ sha256sums=('50f729dd60ed6335b989095baad81ef5edf7cfdd4b4b48b9b955917cb07d69c5'
             '2666c2b41afaf72e317d14ea2bfb3cc256ab253ae357b38d07ad2113de1a0ff5'
             '313272b390ece41b31424ee9de6469d311919e2492dca2b9f7fac726cdc7d172'
             '177bf6b78a1078073a565815594c66ad491c071867c11e1c5fc9e61fbbf137ce')
-b2sums=('1b87d15cbe1b4c761653b7042c46eac3036f08dfcf3a0a81aa7bf6c1c0c402b05f37ce8da9d88df72e1745d66a648c2b8c161b04bf558107f548f6d8167cc798'
+b2sums=('73696281868e5eba6493cc34786a6c30eaf256bed2495444be9a1a5ebf1a0d4b8f00bcc3fb91ce9de3ac8ff23663e41cab17b8fe42b1048366c8e9b95aefa905'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
         '03a52b1b01682e3cafd5b53b1673d1c5579fabcb3988316b18a2e9c2952b60d8db5f30aac25b94f95fdace39f49981e8022fe92d30512deab2208ebbde47e837'
