@@ -17,7 +17,7 @@ pkgname=(
   'lib32-mesa'
 )
 _mesaver=23.3.0
-pkgver=${_mesaver//-/.}.chos1
+pkgver=${_mesaver//-/.}.chos2
 pkgrel=1
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
 url="https://www.mesa3d.org/"
@@ -65,6 +65,7 @@ makedepends=(
 source=(
   https://mesa.freedesktop.org/archive/mesa-${_mesaver}.tar.xz{,.sig}
   LICENSE
+  0001-enable-dispatch.patch
   0001-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch
   0001-vulkan-wsi-wayland-refactor-wayland-dispatch-code.patch
   0002-vulkan-wsi-wayland-Use-commit_timing-commit_queue-pr.patch
@@ -75,6 +76,7 @@ source=(
 sha256sums=('50f729dd60ed6335b989095baad81ef5edf7cfdd4b4b48b9b955917cb07d69c5'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
+            '9baf7950185b6cc6de22b77dcc562145460e859a4a700510e1c38496a6c4342f'
             '6a7ade8c331e2e98c3945aa71df0e928e60e4180750844b601e6332b3278cb12'
             'f134e115ac10aa51970d247b6363d21b9302aec5c80c4189c79292f040e0bc72'
             '2666c2b41afaf72e317d14ea2bfb3cc256ab253ae357b38d07ad2113de1a0ff5'
@@ -83,6 +85,7 @@ sha256sums=('50f729dd60ed6335b989095baad81ef5edf7cfdd4b4b48b9b955917cb07d69c5'
 b2sums=('1b87d15cbe1b4c761653b7042c46eac3036f08dfcf3a0a81aa7bf6c1c0c402b05f37ce8da9d88df72e1745d66a648c2b8c161b04bf558107f548f6d8167cc798'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
+        '03a52b1b01682e3cafd5b53b1673d1c5579fabcb3988316b18a2e9c2952b60d8db5f30aac25b94f95fdace39f49981e8022fe92d30512deab2208ebbde47e837'
         '26b748638849549727bd36d7eeffd44348de7da296cfc67c5f9fabfeb3a4682dc7a1cad96379176b3820951c640e9f7d0f2c55cad6374c599c1a747423c84051'
         'b85a41fbf8504bce6207ab007603fac88353e986b8bdbbe72ba81a1e76b8714b39862a0335a6943cecdcfd3ef2e8974b1038c2c5a5c9265fc7c6a0970e151a04'
         '8441d2a028cff6a6c5ccca3515ea2ae8a14b3cc0bf6c2acfc8b7e8a57645a3b0b4bbfa3a5195048e65cd970c803e9b12fbc2d7effb619044fa51643a681082d1'
@@ -157,12 +160,6 @@ build() {
 
   arch-meson mesa-$_mesaver build "${meson_options[@]}"
   meson configure build # Print config
-
-  # Evil: Hack build to make proc-macro crate native
-  sed -e '/^rule rust_COMPILER$/irule rust_HACK\n command = rustc -C linker=gcc $ARGS $in\n deps = gcc\n depfile = $targetdep\n description = Compiling native Rust source $in\n' \
-      -e '/^build src\/gallium\/frontends\/rusticl\/librusticl_proc_macros\.so:/s/rust_COMPILER/rust_HACK/' \
-      -e '/^ LINK_ARGS =/s/ src\/gallium\/frontends\/rusticl\/librusticl_proc_macros\.so//' \
-      -i build/build.ninja
 
   meson compile -C build
 
