@@ -62,6 +62,10 @@ jobs:
         shell: bash
         run: |
           su build bash -c "cd /home/build/lib32-mesa  && MAKEFLAGS=-j$(nproc) makepkg"
+      - name: Remove epoch in name
+        shell: bash
+        run: |
+          find ${{ env.PKGDEST }}/*.pkg.tar* -type f -name '*:*' -execdir bash -c 'mv "$1" "${1//:/--}"' bash {} \;
       - name: Upload package artifact
         uses: actions/upload-artifact@v3
         with:
