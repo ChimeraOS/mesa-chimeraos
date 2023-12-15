@@ -119,7 +119,7 @@ prepare() {
   # Include package release in version string so Chromium invalidates
   # its GPU cache; otherwise it can cause pages to render incorrectly.
   # https://bugs.launchpad.net/ubuntu/+source/chromium-browser/+bug/2020604
-  echo "$pkgver-chos$epoch.$pkgrel" >VERSION
+  echo "$pkgver-$epoch.$pkgrel" >VERSION
 }
 
 build() {
