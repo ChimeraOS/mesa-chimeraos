@@ -1,7 +1,7 @@
-From fb4bebab7c67d8731e10826c25dc9b52e8fbd251 Mon Sep 17 00:00:00 2001
+From 5a48b862ce1024797c5d96ea78896ee44d5ac7f5 Mon Sep 17 00:00:00 2001
 From: Joshua Ashton <joshua@froggi.es>
 Date: Wed, 29 Nov 2023 11:06:51 +0000
-Subject: [PATCH 5/5] wsi: Use vendored gamescope-commit-queue-v1 protocol
+Subject: [PATCH 4/5] wsi: Use vendored gamescope-commit-queue-v1 protocol
 
 ---
  .../wayland-drm/gamescope-commit-queue-v1.xml | 181 ++++++++++++++++++
@@ -236,7 +236,7 @@ index 83a63385274..caba51b22a7 100644
 +endforeach
 +
 diff --git a/src/vulkan/wsi/meson.build b/src/vulkan/wsi/meson.build
-index dba95387975..fb0fab69ac6 100644
+index 5caea0e8f4f..d90722be253 100644
 --- a/src/vulkan/wsi/meson.build
 +++ b/src/vulkan/wsi/meson.build
 @@ -31,7 +31,7 @@ endif
@@ -249,7 +249,7 @@ index dba95387975..fb0fab69ac6 100644
    files_vulkan_wsi += wp_files['linux-dmabuf-unstable-v1']
    files_vulkan_wsi += wp_files['presentation-time']
 diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
-index 7af1409b130..d21cae54f9b 100644
+index e06f71e3e83..ac6065cb13c 100644
 --- a/src/vulkan/wsi/wsi_common_wayland.c
 +++ b/src/vulkan/wsi/wsi_common_wayland.c
 @@ -41,7 +41,7 @@
@@ -300,7 +300,7 @@ index 7af1409b130..d21cae54f9b 100644
     if (display->tearing_control_manager)
        wp_tearing_control_manager_v1_destroy(display->tearing_control_manager);
     if (display->wl_display_wrapper)
-@@ -2066,8 +2066,8 @@ set_timestamp(struct wsi_wl_swapchain *chain)
+@@ -2063,8 +2063,8 @@ set_timestamp(struct wsi_wl_swapchain *chain)
  
     timespec_from_nsec(&target_ts, target);
  
@@ -312,15 +312,15 @@ index 7af1409b130..d21cae54f9b 100644
  }
  
 @@ -2315,7 +2315,7 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
-    }
+       wl_event_queue_destroy(chain->queue);
  
     if (chain->commit_queue)
 -      wp_commit_queue_v1_destroy(chain->commit_queue);
 +      gamescope_commit_queue_v1_destroy(chain->commit_queue);
  
-    wsi_swapchain_finish(&chain->base);
- }
-@@ -2372,7 +2372,7 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+ 
+    vk_free(pAllocator, (void *)chain->drm_modifiers);
+@@ -2375,7 +2375,7 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
           old_chain->tearing_control = NULL;
        }
        if (old_chain->commit_queue) {
@@ -329,7 +329,7 @@ index 7af1409b130..d21cae54f9b 100644
           old_chain->commit_queue = NULL;
           old_chain->can_timestamp = false;
        }
-@@ -2494,7 +2494,7 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+@@ -2508,7 +2508,7 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
     chain->legacy_fifo_ready = true;
     struct wsi_wl_display *dpy = chain->wsi_wl_surface->display;
     if (dpy->commit_queue_manager) {

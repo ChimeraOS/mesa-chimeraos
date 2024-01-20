@@ -1,13 +1,13 @@
-From 738d09089bbe457ab9d25c07d6d98f176fd9045d Mon Sep 17 00:00:00 2001
+From c1b8ebce704dde66c6ad78e0301afcb7ec1bb379 Mon Sep 17 00:00:00 2001
 From: Simon Ser <contact@emersion.fr>
 Date: Sat, 25 Nov 2023 16:25:58 +0100
-Subject: [PATCH 4/5] hack: rip out commit-timing-v1
+Subject: [PATCH 3/5] hack: rip out commit-timing-v1
 
 ---
  src/egl/wayland/wayland-drm/meson.build |  2 +-
  src/vulkan/wsi/meson.build              |  2 +-
- src/vulkan/wsi/wsi_common_wayland.c     | 24 ++----------------------
- 3 files changed, 4 insertions(+), 24 deletions(-)
+ src/vulkan/wsi/wsi_common_wayland.c     | 23 ++---------------------
+ 3 files changed, 4 insertions(+), 23 deletions(-)
 
 diff --git a/src/egl/wayland/wayland-drm/meson.build b/src/egl/wayland/wayland-drm/meson.build
 index 8b6044f09e5..83a63385274 100644
@@ -23,7 +23,7 @@ index 8b6044f09e5..83a63385274 100644
    'presentation-time': 'stable/presentation-time/presentation-time.xml',
    'tearing-control-v1': 'staging/tearing-control/tearing-control-v1.xml',
 diff --git a/src/vulkan/wsi/meson.build b/src/vulkan/wsi/meson.build
-index 83ad71f06fa..dba95387975 100644
+index 48ea09b99aa..5caea0e8f4f 100644
 --- a/src/vulkan/wsi/meson.build
 +++ b/src/vulkan/wsi/meson.build
 @@ -32,7 +32,7 @@ endif
@@ -36,7 +36,7 @@ index 83ad71f06fa..dba95387975 100644
    files_vulkan_wsi += wp_files['presentation-time']
    files_vulkan_wsi += wp_files['tearing-control-v1']
 diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
-index 86de6ca190c..7af1409b130 100644
+index 28f8f3b5e8f..e06f71e3e83 100644
 --- a/src/vulkan/wsi/wsi_common_wayland.c
 +++ b/src/vulkan/wsi/wsi_common_wayland.c
 @@ -42,7 +42,6 @@
@@ -82,7 +82,7 @@ index 86de6ca190c..7af1409b130 100644
     if (display->tearing_control_manager)
        wp_tearing_control_manager_v1_destroy(display->tearing_control_manager);
     if (display->wl_display_wrapper)
-@@ -2073,9 +2065,6 @@ set_timestamp(struct wsi_wl_swapchain *chain)
+@@ -2070,9 +2062,6 @@ set_timestamp(struct wsi_wl_swapchain *chain)
     }
  
     timespec_from_nsec(&target_ts, target);
@@ -92,7 +92,7 @@ index 86de6ca190c..7af1409b130 100644
  
     wp_commit_queue_v1_set_queue_mode(chain->commit_queue,
                                       WP_COMMIT_QUEUE_V1_QUEUE_MODE_FIFO);
-@@ -2091,6 +2080,7 @@ wsi_wl_swapchain_queue_present(struct wsi_swapchain *wsi_chain,
+@@ -2088,6 +2077,7 @@ wsi_wl_swapchain_queue_present(struct wsi_swapchain *wsi_chain,
     struct wsi_wl_swapchain *chain = (struct wsi_wl_swapchain *)wsi_chain;
     struct wsi_wl_surface *wsi_wl_surface = chain->wsi_wl_surface;
     bool mode_fifo = chain->base.present_mode == VK_PRESENT_MODE_FIFO_KHR;
@@ -100,17 +100,16 @@ index 86de6ca190c..7af1409b130 100644
  
     if (chain->buffer_type == WSI_WL_BUFFER_SHM_MEMCPY) {
        struct wsi_wl_image *image = &chain->images[image_index];
-@@ -2327,9 +2317,6 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
+@@ -2327,8 +2317,6 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
     if (chain->commit_queue)
        wp_commit_queue_v1_destroy(chain->commit_queue);
  
 -   if (chain->commit_timer)
 -      wp_commit_timer_v1_destroy(chain->commit_timer);
--
-    wsi_swapchain_finish(&chain->base);
- }
  
-@@ -2389,10 +2376,6 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+    vk_free(pAllocator, (void *)chain->drm_modifiers);
+    wsi_swapchain_finish(&chain->base);
+@@ -2391,10 +2379,6 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
           old_chain->commit_queue = NULL;
           old_chain->can_timestamp = false;
        }
@@ -121,7 +120,7 @@ index 86de6ca190c..7af1409b130 100644
     }
  
     /* Take ownership of the wsi_wl_surface */
-@@ -2510,12 +2493,9 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+@@ -2523,12 +2507,9 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
  
     chain->legacy_fifo_ready = true;
     struct wsi_wl_display *dpy = chain->wsi_wl_surface->display;
