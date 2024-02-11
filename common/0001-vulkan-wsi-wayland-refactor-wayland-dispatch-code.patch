@@ -1,18 +1,18 @@
-From d52610e1e61857709035d7f90330bcec7d27a034 Mon Sep 17 00:00:00 2001
+From 34e1eb1878c1efa9da4a756acf46c646b10c0199 Mon Sep 17 00:00:00 2001
 From: Derek Foreman <derek.foreman@collabora.com>
 Date: Wed, 20 Sep 2023 10:40:33 -0500
-Subject: [PATCH 2/6] vulkan/wsi/wayland: refactor wayland dispatch code
+Subject: [PATCH 1/5] vulkan/wsi/wayland: refactor wayland dispatch code
 
 We currently have two similar but different bits of code to dispatch
 wayland event queues. Pull out as much common code as possible.
 
 Signed-off-by: Derek Foreman <derek.foreman@collabora.com>
 ---
- src/vulkan/wsi/wsi_common_wayland.c | 401 +++++++++++++++-------------
- 1 file changed, 208 insertions(+), 193 deletions(-)
+ src/vulkan/wsi/wsi_common_wayland.c | 405 ++++++++++++++--------------
+ 1 file changed, 210 insertions(+), 195 deletions(-)
 
 diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
-index 5fd9aaf24ae..72281968de3 100644
+index a11cbd21adb..e80ac56cfe8 100644
 --- a/src/vulkan/wsi/wsi_common_wayland.c
 +++ b/src/vulkan/wsi/wsi_common_wayland.c
 @@ -96,6 +96,11 @@ struct wsi_wl_display {
@@ -212,7 +212,7 @@ index 5fd9aaf24ae..72281968de3 100644
     wsi_wl_display_finish(display);
     return result;
  }
-@@ -1675,19 +1816,15 @@ wsi_wl_swapchain_wait_for_present(struct wsi_swapchain *wsi_chain,
+@@ -1672,19 +1813,15 @@ wsi_wl_swapchain_wait_for_present(struct wsi_swapchain *wsi_chain,
                                    uint64_t timeout)
  {
     struct wsi_wl_swapchain *chain = (struct wsi_wl_swapchain *)wsi_chain;
@@ -239,7 +239,7 @@ index 5fd9aaf24ae..72281968de3 100644
  
     /* Need to observe that the swapchain semaphore has been unsignalled,
      * as this is guaranteed when a present is complete. */
-@@ -1703,141 +1840,45 @@ wsi_wl_swapchain_wait_for_present(struct wsi_swapchain *wsi_chain,
+@@ -1700,141 +1837,45 @@ wsi_wl_swapchain_wait_for_present(struct wsi_swapchain *wsi_chain,
        return VK_SUCCESS;
     }
  
@@ -406,7 +406,7 @@ index 5fd9aaf24ae..72281968de3 100644
  }
  
  static VkResult
-@@ -1847,19 +1888,18 @@ wsi_wl_swapchain_acquire_next_image(struct wsi_swapchain *wsi_chain,
+@@ -1844,19 +1885,18 @@ wsi_wl_swapchain_acquire_next_image(struct wsi_swapchain *wsi_chain,
  {
     struct wsi_wl_swapchain *chain = (struct wsi_wl_swapchain *)wsi_chain;
     struct wsi_wl_surface *wsi_wl_surface = chain->wsi_wl_surface;
@@ -435,7 +435,7 @@ index 5fd9aaf24ae..72281968de3 100644
        if (ret < 0)
           return VK_ERROR_OUT_OF_DATE_KHR;
  
-@@ -1873,46 +1913,26 @@ wsi_wl_swapchain_acquire_next_image(struct wsi_swapchain *wsi_chain,
+@@ -1870,46 +1910,26 @@ wsi_wl_swapchain_acquire_next_image(struct wsi_swapchain *wsi_chain,
           }
        }
  
@@ -498,7 +498,7 @@ index 5fd9aaf24ae..72281968de3 100644
     }
  }
  
-@@ -1933,9 +1953,10 @@ presentation_handle_presented(void *data,
+@@ -1930,9 +1950,10 @@ presentation_handle_presented(void *data,
  {
     struct wsi_wl_present_id *id = data;
  
@@ -510,7 +510,7 @@ index 5fd9aaf24ae..72281968de3 100644
  
     wp_presentation_feedback_destroy(feedback);
     wl_list_remove(&id->link);
-@@ -1948,9 +1969,10 @@ presentation_handle_discarded(void *data,
+@@ -1945,9 +1966,10 @@ presentation_handle_discarded(void *data,
  {
     struct wsi_wl_present_id *id = data;
  
@@ -522,7 +522,7 @@ index 5fd9aaf24ae..72281968de3 100644
  
     wp_presentation_feedback_destroy(feedback);
     wl_list_remove(&id->link);
-@@ -2198,8 +2220,6 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
+@@ -2195,8 +2217,6 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
        chain->wsi_wl_surface->chain = NULL;
  
     if (chain->present_ids.wp_presentation) {
@@ -531,13 +531,20 @@ index 5fd9aaf24ae..72281968de3 100644
        /* In VK_EXT_swapchain_maintenance1 there is no requirement to wait for all present IDs to be complete.
         * Waiting for the swapchain fence is enough.
         * Just clean up anything user did not wait for. */
-@@ -2211,7 +2231,6 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
+@@ -2208,12 +2228,11 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
        }
  
        wl_proxy_wrapper_destroy(chain->present_ids.wp_presentation);
 -      pthread_cond_destroy(&chain->present_ids.list_advanced);
        pthread_mutex_destroy(&chain->present_ids.lock);
     }
+ 
+-   if (chain->present_ids.queue)
+-      wl_event_queue_destroy(chain->present_ids.queue);
++   if (chain->queue)
++      wl_event_queue_destroy(chain->queue);
+ 
+    vk_free(pAllocator, (void *)chain->drm_modifiers);
  
 @@ -2386,20 +2405,16 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
        chain->drm_modifiers = drm_modifiers_copy;

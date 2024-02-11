@@ -11,12 +11,11 @@ pkgname=(
   'vulkan-intel'
   'vulkan-radeon'
   'vulkan-swrast'
-  'vulkan-virtio'
   'libva-mesa-driver'
   'mesa-vdpau'
   'mesa'
 )
-_mesaver=23.3.5
+_mesaver=24.0.0
 pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 epoch=1
@@ -75,31 +74,28 @@ makedepends=(
 source=(
   https://mesa.freedesktop.org/archive/mesa-${_mesaver}.tar.xz{,.sig}
   LICENSE
-  0001-radv-Enable-compute-dispatch-tunneling.patch
-  0002-vulkan-wsi-wayland-refactor-wayland-dispatch-code.patch
-  0003-vulkan-wsi-wayland-Use-commit_timing-commit_queue-pr.patch
-  0004-hack-rip-out-commit-timing-v1.patch
-  0005-wsi-Use-vendored-gamescope-commit-queue-v1-protocol.patch
-  0006-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch
+  0001-vulkan-wsi-wayland-refactor-wayland-dispatch-code.patch
+  0002-vulkan-wsi-wayland-Use-commit_timing-commit_queue-pr.patch
+  0003-hack-rip-out-commit-timing-v1.patch
+  0004-wsi-Use-vendored-gamescope-commit-queue-v1-protocol.patch
+  0005-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch
 )
-sha256sums=('69ccb1278641ff5bad71ca0f866188aeb1a92aadc4dbb9d35f50aebec5b8b50f'
+sha256sums=('dc7e8c077bc5884df95478263b34bdebb7e88e600689cb56fb07be2b8c304c36'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
-            'e41017601358f4edb68e81bed145f063ab58fdf6bf88e9ab51a2491d33b80af7'
-            '6f52753338f3cbc1930c22bdcb8f21b33466ff21e8ca1a3606eacae8441979e3'
-            '44ddc725a21772d7f3e4c25cf5dbf82a9fca6fac9d09de484b5a60e5fca82d35'
-            'e4e747900b689ffe9333c15791c38cad2962b5f04902a6abfe53b92c8d785c88'
-            '002da9935ba342f1fd33eb5b7c30dca4002bca6d7eecf5108d29353dc8704a36'
-            'e44415a8843d5d6ec6c4b5e5ea24cb7ef3f6cc83535f535a73a54fb02cab2a59')
-b2sums=('69c7434ae9c503c14b5bf9abad9a3a26a1dd402461b098dcdb01b9da7a7e8652f897fd9681c809aa70d3ace77c448289d22400deca3854844a355eb0ac095583'
+            'c8eb8202b9b557df61c98ff1bd9c79652fa9d0cdd2fe13c1426f94102408b698'
+            '8e4e483f002db7f22ab0ff87d7836b88a21e61ed9c224dd3224074998c13a668'
+            'f80cf29bd8acba1a67b2c4a8f0c173e9972a3c84847a8159b6de7b7ff62956c4'
+            '0041667fcf70058edbce93532ef446806b423d1e591f6db9242f1bd4609b0366'
+            'fb795805ae90549af2b0cd856c253124c4fce4e1fff006e9ccbfefc703a682b5')
+b2sums=('e15b14e921a6d1c8d1b183b8f7302d13aa81401d9485742846b8b70e2353825bcf0a0e1ee1849831eb43e5836a108cb3cf68bfe0d9183a78684dbd2fac637ab7'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
-        '6d155dda5dc23f31d505bac3142d5e0634487db195b77c3b180f4592dfa2628aaf663f163f5b0376aab1bdec5fc56b8564d36db9ca86da2e474af4a8306ba14a'
-        '3310f0ed88e86bd253791aade10bb36dc1b76ef6c3a32d3051f625e73f52e52bc4695c752458cc16598c32fa7aa98a115575a58f9db788c04bf47d82bd97a371'
-        'd408740278f0146f22afae362a036a2c0cc924ad240a6bd67eab49dc614288628e1adcada715d61e87f072b11ebee02b8da00d48f9138f36aabd1e918f653544'
-        '79ddeb8a2b1c1113f05bb6432e956972c36659bdafe93460c9cffaf0724d0fc56b2e7b624f34a1ff7177a018d2f5ffc41156ae160e80a82fb62938a23e1e0d94'
-        '9625918d8206fdfc058f6a5886b44c9336f14c94fbf14140f38be5ab61033148d3a21b180b985fb7326cd918ddc426f610fd4056ea934e9a057dc216534fa557'
-        '9d770d6514109ca07fd889bc1e0b2dbbf19d156d53ae71b625ff3df5d069c987805be8ea30d234d0e051a4d59e42c429eef2a011f5574cffeeeced306bc7d934')
+        'b439afd5317b14f3107c4b1e8725e680f082ac21c8483494611a62661f0f7ce866f6bed9e40a0362cff9c3f1f3d4dc14036017c26a5d0da4700887aa01679678'
+        '08b1555de5bd20c7504aacfa5a1d17d25a51fff9b19ac89a650e48705dc2765887acf642f6272044fb9e410401b7530f143086dd33ac4b34b7bacbab74ccc28a'
+        '666dbecc5487e01d6e2d5bf65ed4358dec9b7e9e078ea9964180c5bc68dd8787e75a7a8067927e2548f421d3d9e286384867f1cf3ad5470cdafd24a047478643'
+        'c303e04caf9bbfa3a6052f83902b387c19054579ded493de34aa8d1aa4846b03af9109a8c504d16e33726689cf8d117d3e20ef24f460b27120bcaddb827202a9'
+        '2a25b3aba09644fc0ca1fdfd2457cd268132323392d10f741433603bf8435e7a5b2cdd003e891b2657ec01eb024249134e002c640fe6858592211a0ea4cf4b27')
 validpgpkeys=('8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'  # Emil Velikov <emil.l.velikov@gmail.com>
               '946D09B5E4C9845E63075FF1D961C596A7203456'  # Andres Gomez <tanty@igalia.com>
               'E3E8F480C52ADD73B278EE78E1ECBE07D7D70895'  # Juan Antonio Suárez Romero (Igalia, S.L.) <jasuarez@igalia.com>
@@ -131,7 +127,7 @@ build() {
     -D b_ndebug=true
     -D dri3=enabled
     -D egl=enabled
-    -D gallium-drivers=r300,r600,radeonsi,nouveau,virgl,svga,swrast,i915,iris,crocus,zink,d3d12
+    -D gallium-drivers=radeonsi,nouveau,swrast,i915,iris,crocus,zink
     -D gallium-extra-hud=true
     -D gallium-nine=true
     -D gallium-omx=bellagio
@@ -139,7 +135,7 @@ build() {
     -D gallium-rusticl=true
     -D gallium-va=enabled
     -D gallium-vdpau=enabled
-    -D gallium-xa=enabled
+    -D gallium-xa=disabled
     -D gbm=enabled
     -D gles1=disabled
     -D gles2=enabled
@@ -155,8 +151,8 @@ build() {
     -D rust_std=2021
     -D shared-glapi=enabled
     -D valgrind=enabled
-    -D video-codecs=vc1dec,h264dec,h264enc,h265dec,h265enc
-    -D vulkan-drivers=amd,intel,intel_hasvk,swrast,virtio
+    -D video-codecs=all
+    -D vulkan-drivers=amd,intel,intel_hasvk,swrast
     -D vulkan-layers=device-select,intel-nullhw,overlay
   )
 
@@ -320,26 +316,6 @@ package_vulkan-swrast() {
   install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
 }
 
-package_vulkan-virtio() {
-  pkgdesc="Venus Vulkan mesa driver for Virtual Machines"
-  depends=(
-    'libdrm'
-    'libx11'
-    'libxshmfence'
-    'systemd'
-    'wayland'
-    'xcb-util-keysyms'
-    'zstd'
-  )
-  optdepends=('vulkan-mesa-layers: additional vulkan layers')
-  provides=('vulkan-driver')
-
-  _install fakeinstall/usr/share/vulkan/icd.d/virtio_icd*.json
-  _install fakeinstall/$_libdir/libvulkan_virtio.so
-
-  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
-}
-
 package_libva-mesa-driver() {
   pkgdesc="VA-API drivers"
   depends=(
@@ -413,7 +389,6 @@ package_mesa() {
   _install fakeinstall/$_libdir/d3d
   _install fakeinstall/$_libdir/lib{gbm,glapi}.so*
   _install fakeinstall/$_libdir/libOSMesa.so*
-  _install fakeinstall/$_libdir/libxatracker.so*
 
   _install fakeinstall/usr/include
   _install fakeinstall/$_libdir/pkgconfig
