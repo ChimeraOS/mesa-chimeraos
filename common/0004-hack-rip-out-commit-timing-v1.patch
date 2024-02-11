@@ -1,7 +1,7 @@
-From 738d09089bbe457ab9d25c07d6d98f176fd9045d Mon Sep 17 00:00:00 2001
+From 90ee07bcb8a162098a37d32825489b2033aae2e4 Mon Sep 17 00:00:00 2001
 From: Simon Ser <contact@emersion.fr>
 Date: Sat, 25 Nov 2023 16:25:58 +0100
-Subject: [PATCH 4/5] hack: rip out commit-timing-v1
+Subject: [PATCH 4/6] hack: rip out commit-timing-v1
 
 ---
  src/egl/wayland/wayland-drm/meson.build |  2 +-
@@ -36,7 +36,7 @@ index 83ad71f06fa..dba95387975 100644
    files_vulkan_wsi += wp_files['presentation-time']
    files_vulkan_wsi += wp_files['tearing-control-v1']
 diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
-index 86de6ca190c..7af1409b130 100644
+index 200b15aa37a..89bf4c1f062 100644
 --- a/src/vulkan/wsi/wsi_common_wayland.c
 +++ b/src/vulkan/wsi/wsi_common_wayland.c
 @@ -42,7 +42,6 @@
@@ -107,10 +107,10 @@ index 86de6ca190c..7af1409b130 100644
 -   if (chain->commit_timer)
 -      wp_commit_timer_v1_destroy(chain->commit_timer);
 -
+    vk_free(pAllocator, (void *)chain->drm_modifiers);
     wsi_swapchain_finish(&chain->base);
  }
- 
-@@ -2389,10 +2376,6 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+@@ -2391,10 +2378,6 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
           old_chain->commit_queue = NULL;
           old_chain->can_timestamp = false;
        }
@@ -121,7 +121,7 @@ index 86de6ca190c..7af1409b130 100644
     }
  
     /* Take ownership of the wsi_wl_surface */
-@@ -2510,12 +2493,9 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+@@ -2523,12 +2506,9 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
  
     chain->legacy_fifo_ready = true;
     struct wsi_wl_display *dpy = chain->wsi_wl_surface->display;

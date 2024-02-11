@@ -1,7 +1,7 @@
-From fb4bebab7c67d8731e10826c25dc9b52e8fbd251 Mon Sep 17 00:00:00 2001
+From 6550ece32d637c27f78ad026acba81ccad706fa8 Mon Sep 17 00:00:00 2001
 From: Joshua Ashton <joshua@froggi.es>
 Date: Wed, 29 Nov 2023 11:06:51 +0000
-Subject: [PATCH 5/5] wsi: Use vendored gamescope-commit-queue-v1 protocol
+Subject: [PATCH 5/6] wsi: Use vendored gamescope-commit-queue-v1 protocol
 
 ---
  .../wayland-drm/gamescope-commit-queue-v1.xml | 181 ++++++++++++++++++
@@ -249,7 +249,7 @@ index dba95387975..fb0fab69ac6 100644
    files_vulkan_wsi += wp_files['linux-dmabuf-unstable-v1']
    files_vulkan_wsi += wp_files['presentation-time']
 diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
-index 7af1409b130..d21cae54f9b 100644
+index 89bf4c1f062..6640a9757df 100644
 --- a/src/vulkan/wsi/wsi_common_wayland.c
 +++ b/src/vulkan/wsi/wsi_common_wayland.c
 @@ -41,7 +41,7 @@
@@ -318,9 +318,9 @@ index 7af1409b130..d21cae54f9b 100644
 -      wp_commit_queue_v1_destroy(chain->commit_queue);
 +      gamescope_commit_queue_v1_destroy(chain->commit_queue);
  
+    vk_free(pAllocator, (void *)chain->drm_modifiers);
     wsi_swapchain_finish(&chain->base);
- }
-@@ -2372,7 +2372,7 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+@@ -2374,7 +2374,7 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
           old_chain->tearing_control = NULL;
        }
        if (old_chain->commit_queue) {
@@ -329,7 +329,7 @@ index 7af1409b130..d21cae54f9b 100644
           old_chain->commit_queue = NULL;
           old_chain->can_timestamp = false;
        }
-@@ -2494,7 +2494,7 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+@@ -2507,7 +2507,7 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
     chain->legacy_fifo_ready = true;
     struct wsi_wl_display *dpy = chain->wsi_wl_surface->display;
     if (dpy->commit_queue_manager) {

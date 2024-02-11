@@ -1,4 +1,4 @@
-From cac15ce38523769c72f1c6f8458516ea1dc9f1d8 Mon Sep 17 00:00:00 2001
+From 0b8ec30cd108975ff388bbb02bec568fa87313a8 Mon Sep 17 00:00:00 2001
 From: Bas Nieuwenhuizen <bas@basnieuwenhuizen.nl>
 Date: Mon, 21 Feb 2022 18:43:54 +0100
 Subject: [PATCH 6/6] STEAMOS: Dynamic swapchain override for gamescope limiter

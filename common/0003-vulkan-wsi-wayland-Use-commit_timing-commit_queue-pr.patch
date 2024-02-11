@@ -1,7 +1,7 @@
-From 71111b7e67088b2c32db73565f79a3840a2d69e5 Mon Sep 17 00:00:00 2001
+From 588b426986a990b939da1b1e7656b3083e3a965f Mon Sep 17 00:00:00 2001
 From: Derek Foreman <derek.foreman@collabora.com>
 Date: Fri, 10 Nov 2023 07:25:35 -0600
-Subject: [PATCH 3/5] vulkan/wsi/wayland: Use commit_timing/commit_queue
+Subject: [PATCH 3/6] vulkan/wsi/wayland: Use commit_timing/commit_queue
  protocol for FIFO
 
 The commit_timing protocol allows us to set a presentation timestamp,
@@ -15,8 +15,8 @@ Signed-off-by: Derek Foreman <derek.foreman@collabora.com>
 ---
  src/egl/wayland/wayland-drm/meson.build |   2 +
  src/vulkan/wsi/meson.build              |   2 +
- src/vulkan/wsi/wsi_common_wayland.c     | 138 +++++++++++++++++++++---
- 3 files changed, 130 insertions(+), 12 deletions(-)
+ src/vulkan/wsi/wsi_common_wayland.c     | 139 +++++++++++++++++++++---
+ 3 files changed, 130 insertions(+), 13 deletions(-)
 
 diff --git a/src/egl/wayland/wayland-drm/meson.build b/src/egl/wayland/wayland-drm/meson.build
 index ac822acec67..8b6044f09e5 100644
@@ -45,7 +45,7 @@ index 9d0db011767..83ad71f06fa 100644
    files_vulkan_wsi += wp_files['presentation-time']
    files_vulkan_wsi += wp_files['tearing-control-v1']
 diff --git a/src/vulkan/wsi/wsi_common_wayland.c b/src/vulkan/wsi/wsi_common_wayland.c
-index 9d410cf8fe1..86de6ca190c 100644
+index 72281968de3..200b15aa37a 100644
 --- a/src/vulkan/wsi/wsi_common_wayland.c
 +++ b/src/vulkan/wsi/wsi_common_wayland.c
 @@ -41,6 +41,8 @@
@@ -285,20 +285,22 @@ index 9d410cf8fe1..86de6ca190c 100644
  
     return VK_SUCCESS;
  
-@@ -2234,6 +2324,12 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
+@@ -2234,8 +2324,13 @@ wsi_wl_swapchain_chain_free(struct wsi_wl_swapchain *chain,
        pthread_mutex_destroy(&chain->present_ids.lock);
     }
  
+-   vk_free(pAllocator, (void *)chain->drm_modifiers);
 +   if (chain->commit_queue)
 +      wp_commit_queue_v1_destroy(chain->commit_queue);
 +
 +   if (chain->commit_timer)
 +      wp_commit_timer_v1_destroy(chain->commit_timer);
-+
+ 
++   vk_free(pAllocator, (void *)chain->drm_modifiers);
     wsi_swapchain_finish(&chain->base);
  }
  
-@@ -2288,6 +2384,15 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+@@ -2291,6 +2386,15 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
           wp_tearing_control_v1_destroy(old_chain->tearing_control);
           old_chain->tearing_control = NULL;
        }
@@ -314,7 +316,7 @@ index 9d410cf8fe1..86de6ca190c 100644
     }
  
     /* Take ownership of the wsi_wl_surface */
-@@ -2403,7 +2508,16 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
+@@ -2417,7 +2521,16 @@ wsi_wl_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
                           chain->queue);
     }
  
