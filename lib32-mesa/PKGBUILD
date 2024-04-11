@@ -162,7 +162,6 @@ build() {
     -D glvnd=true
     -D glx=dri
     -D intel-clc=enabled
-    -D intel-xe-kmd=enabled
     -D llvm=enabled
     -D lmsensors=enabled
     -D microsoft-clc=disabled
