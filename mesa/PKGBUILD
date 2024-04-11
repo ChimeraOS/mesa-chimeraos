@@ -35,6 +35,7 @@ makedepends=(
   'libglvnd'
   'libva'
   'libvdpau'
+  'libunwind'
   'libx11'
   'libxcb'
   'libxext'
