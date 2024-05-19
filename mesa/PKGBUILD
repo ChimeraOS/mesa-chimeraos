@@ -17,7 +17,7 @@ pkgname=(
   'mesa-vdpau'
   'mesa'
 )
-_mesaver=24.0.7
+_mesaver=24.1.0-rc4
 pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 epoch=1
@@ -58,6 +58,7 @@ makedepends=(
   'zstd'
 
   # shared between mesa and lib32-mesa
+  'cbindgen'
   'clang'
   'cmake'
   'elfutils'
@@ -81,11 +82,7 @@ options=(
 source=(
   https://mesa.freedesktop.org/archive/mesa-${_mesaver}.tar.xz{,.sig}
   LICENSE
-  0001-vulkan-wsi-wayland-refactor-wayland-dispatch-code.patch
-  0002-vulkan-wsi-wayland-Use-commit_timing-commit_queue-pr.patch
-  0003-hack-rip-out-commit-timing-v1.patch
-  0004-wsi-Use-vendored-gamescope-commit-queue-v1-protocol.patch
-  0005-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch
+  0001-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch
 )
 validpgpkeys=(
   '8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'  # Emil Velikov <emil.l.velikov@gmail.com>
@@ -102,35 +99,30 @@ declare -A _crates=(
    quote          1.0.33
    syn            2.0.39
    unicode-ident  1.0.12
+   paste          1.0.14
 )
 
 for _crate in "${!_crates[@]}"; do
   source+=($_crate-${_crates[$_crate]}.tar.gz::https://crates.io/api/v1/crates/$_crate/${_crates[$_crate]}/download)
 done
 
-sha256sums=('7454425f1ed4a6f1b5b107e1672b30c88b22ea0efea000ae2c7d96db93f6c26a'
+sha256sums=('57b29989fa446f788b716d5175f6e168a28241f79ccc8b14835d4e491c017294'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
-            'c8eb8202b9b557df61c98ff1bd9c79652fa9d0cdd2fe13c1426f94102408b698'
-            '8e4e483f002db7f22ab0ff87d7836b88a21e61ed9c224dd3224074998c13a668'
-            'f80cf29bd8acba1a67b2c4a8f0c173e9972a3c84847a8159b6de7b7ff62956c4'
-            '0041667fcf70058edbce93532ef446806b423d1e591f6db9242f1bd4609b0366'
-            'fb795805ae90549af2b0cd856c253124c4fce4e1fff006e9ccbfefc703a682b5'
+            'f1343e521907006dc482e619dff5b43db616977febd9ba80af8ef7511da5b6b5'
             '39278fbbf5fb4f646ce651690877f89d1c5811a3d4acb27700c1cb3cdb78fd3b'
             '3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b'
             '5267fca4496028628a95160fc423a33e8b2e6af8a5302579e322e4b520293cae'
+            'de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c'
             '23e78b90f2fcf45d3e842032ce32e3f2d1545ba6636271dcbf24fa306d87be7a')
-b2sums=('d9438e533b471445b2403e01e1fd593d83c0013b0991585f718122f1cadc6ac6bb1fb913f0fb257354ae21ddd9fe1f970ad9ac46f05d756c223ed56a11b9c9ce'
+b2sums=('66c09358acc3fa27ff74ae71a999777b93d28b0cc0f34f43c36710994b73fdc6f922977ab6062a6b46c34a29a5276896ff2e6393fa12af1312ae5cba1b1deaa3'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
-        'b439afd5317b14f3107c4b1e8725e680f082ac21c8483494611a62661f0f7ce866f6bed9e40a0362cff9c3f1f3d4dc14036017c26a5d0da4700887aa01679678'
-        '08b1555de5bd20c7504aacfa5a1d17d25a51fff9b19ac89a650e48705dc2765887acf642f6272044fb9e410401b7530f143086dd33ac4b34b7bacbab74ccc28a'
-        '666dbecc5487e01d6e2d5bf65ed4358dec9b7e9e078ea9964180c5bc68dd8787e75a7a8067927e2548f421d3d9e286384867f1cf3ad5470cdafd24a047478643'
-        'c303e04caf9bbfa3a6052f83902b387c19054579ded493de34aa8d1aa4846b03af9109a8c504d16e33726689cf8d117d3e20ef24f460b27120bcaddb827202a9'
-        '2a25b3aba09644fc0ca1fdfd2457cd268132323392d10f741433603bf8435e7a5b2cdd003e891b2657ec01eb024249134e002c640fe6858592211a0ea4cf4b27'
+        'be2f4cc356e67861b7c47b15132ad3178bfbb206137223cf77691fc5e4d75cb035a3a74cdbfa3766cc2924dfd503417f4758084732215264c715f050f231bcc8'
         'fff0dec06b21e391783cc136790238acb783780eaedcf14875a350e7ceb46fdc100c8b9e3f09fb7f4c2196c25d4c6b61e574c0dad762d94533b628faab68cf5c'
         '4cede03c08758ccd6bf53a0d0057d7542dfdd0c93d342e89f3b90460be85518a9fd24958d8b1da2b5a09b5ddbee8a4263982194158e171c2bba3e394d88d6dac'
         '77c4b166f1200e1ee2ab94a5014acd334c1fe4b7d72851d73768d491c56c6779a0882a304c1f30c88732a6168351f0f786b10516ae537cff993892a749175848'
+        '35e8548611c51ee75f4d04926149e5e54870d7073d9b635d550a6fa0f85891f57f326bdbcff3dd8618cf40f8e08cf903ef87d9c034d5921d8b91e1db842cdd7c'
         '2cff6626624d03f70f1662af45a8644c28a9f92e2dfe38999bef3ba4a4c1ce825ae598277e9cb7abd5585eebfb17b239effc8d0bbf1c6ac196499f0d288e5e01')
 
 prepare() {
@@ -163,7 +155,7 @@ build() {
     -D gallium-rusticl=true
     -D gallium-xa=disabled
     -D gles1=disabled
-    -D glvnd=true
+    -D glvnd=enabled
     -D glx=dri
     -D intel-clc=enabled
     -D libunwind=disabled
@@ -172,7 +164,7 @@ build() {
     -D platforms=x11,wayland
     -D valgrind=enabled
     -D video-codecs=all
-    -D vulkan-drivers=amd,intel,intel_hasvk,swrast,nouveau-experimental
+    -D vulkan-drivers=amd,intel,intel_hasvk,swrast,nouveau
     -D vulkan-layers=device-select,intel-nullhw,overlay
   )
 
