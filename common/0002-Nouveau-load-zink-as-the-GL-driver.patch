@@ -1,0 +1,46 @@
+From 4c766a2990306d549464a7e7e4bc89109066ecda Mon Sep 17 00:00:00 2001
+From: Dave Airlie <airlied@redhat.com>
+Date: Thu, 16 May 2024 09:59:57 +1000
+Subject: [PATCH] loader/nouveau: load zink as the GL driver for turing and
+ above.
+
+If the kernel supports modifiers and the GPU is a Turing+ then
+force using zink instead of nvc0.
+
+I expect there might be some speed bumps to work out here,
+but I think we should be close.
+---
+ src/loader/loader.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/src/loader/loader.c b/src/loader/loader.c
+index f76a18d9e3cc1..732de42354602 100644
+--- a/src/loader/loader.c
++++ b/src/loader/loader.c
+@@ -147,12 +147,17 @@ nouveau_zink_predicate(int fd, const char *driver)
+ 
+    bool prefer_zink = false;
+ 
+-   /* enable this once zink is up to speed.
+-    * struct drm_nouveau_getparam r = { .param = NOUVEAU_GETPARAM_CHIPSET_ID };
+-    * int ret = drmCommandWriteRead(fd, DRM_NOUVEAU_GETPARAM, &r, sizeof(r));
+-    * if (ret == 0 && (r.value & ~0xf) >= 0x160)
+-    *    prefer_zink = true;
+-    */
++   /* enable this once zink is up to speed. */
++   struct drm_nouveau_getparam r = { .param = NOUVEAU_GETPARAM_HAS_VMA_TILEMODE };
++   int ret = drmCommandWriteRead(fd, DRM_NOUVEAU_GETPARAM, &r, sizeof(r));
++   if (ret == 0 && r.value == 1) {
++      r.param = NOUVEAU_GETPARAM_CHIPSET_ID;
++      r.value = 0;
++      ret = drmCommandWriteRead(fd, DRM_NOUVEAU_GETPARAM, &r, sizeof(r));
++      if (ret == 0 && (r.value & ~0xf) >= 0x160) {
++         prefer_zink = true;
++      }
++   }
+ 
+    prefer_zink = debug_get_bool_option("NOUVEAU_USE_ZINK", prefer_zink);
+ 
+-- 
+GitLab
+

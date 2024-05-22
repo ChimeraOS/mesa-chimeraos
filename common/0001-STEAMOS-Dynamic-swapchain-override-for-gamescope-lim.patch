@@ -1,14 +1,18 @@
-From ac6ba78c7399aa738f9cc7bac082f2ca0e2d5115 Mon Sep 17 00:00:00 2001
-From: Bas Nieuwenhuizen <bas@basnieuwenhuizen.nl>
-Date: Mon, 21 Feb 2022 18:43:54 +0100
-Subject: [PATCH 5/5] STEAMOS: Dynamic swapchain override for gamescope limiter
+From 037c35841d89fbb8150f839960e34a1e20810b3f Mon Sep 17 00:00:00 2001
+From: Samuel Pitoiset <samuel.pitoiset@gmail.com>
+Date: Thu, 22 Feb 2024 22:32:45 +0100
+Subject: [PATCH] STEAMOS: Dynamic swapchain override for gamescope limiter for
+ DRI3 only
 
+The original patch (from Bas) contained WSI VK support too but it's
+been removed because the Gamescope WSI layer already handles that.
+
+Signed-off-by: Samuel Pitoiset <samuel.pitoiset@gmail.com>
 ---
  src/loader/loader_dri3_helper.c | 42 +++++++++++++++++++++++++++++++--
  src/loader/loader_dri3_helper.h |  1 +
  src/loader/meson.build          |  2 +-
- src/vulkan/wsi/wsi_common_x11.c | 38 +++++++++++++++++++++++++++++
- 4 files changed, 80 insertions(+), 3 deletions(-)
+ 3 files changed, 42 insertions(+), 3 deletions(-)
 
 diff --git a/src/loader/loader_dri3_helper.c b/src/loader/loader_dri3_helper.c
 index dc1db4fa8be..38e55dc23ae 100644
@@ -99,7 +103,7 @@ index cc2362dd599..fe73b3f329c 100644
     struct loader_dri3_extensions *ext;
     const struct loader_dri3_vtable *vtable;
 diff --git a/src/loader/meson.build b/src/loader/meson.build
-index 043cc852112..8391ff38936 100644
+index ffb970f26be..326e2b5b9fd 100644
 --- a/src/loader/meson.build
 +++ b/src/loader/meson.build
 @@ -29,7 +29,7 @@ if with_platform_x11 and with_dri3
@@ -112,5 +116,5 @@ index 043cc852112..8391ff38936 100644
      build_by_default : false,
    )
 -- 
-2.43.0
+2.45.0
 
