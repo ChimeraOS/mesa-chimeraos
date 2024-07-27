@@ -17,7 +17,7 @@ pkgname=(
   'lib32-mesa-vdpau'
   'lib32-mesa'
 )
-_mesaver=24.1.3
+_mesaver=24.2.0-rc2
 pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 epoch=1
@@ -67,6 +67,7 @@ makedepends=(
   'python-mako'
   'python-packaging'
   'python-ply'
+  'python-yaml'
   'rust-bindgen'
   'wayland-protocols'
   'xorgproto'
@@ -92,9 +93,9 @@ validpgpkeys=(
 
 # Rust crates for NVK, used as Meson subprojects
 declare -A _crates=(
-   proc-macro2    1.0.70
+   proc-macro2    1.0.86
    quote          1.0.33
-   syn            2.0.39
+   syn            2.0.68
    unicode-ident  1.0.12
    paste          1.0.14
 )
@@ -103,26 +104,26 @@ for _crate in "${!_crates[@]}"; do
   source+=($_crate-${_crates[$_crate]}.tar.gz::https://crates.io/api/v1/crates/$_crate/${_crates[$_crate]}/download)
 done
 
-sha256sums=('63236426b25a745ba6aa2d6daf8cd769d5ea01887b0745ab7124d2ef33a9020d'
+sha256sums=('3b2207cb4aadf2c2f08be0e62a10b17f7638786268e74e9cd8a92f176630b9d0'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
             'f1343e521907006dc482e619dff5b43db616977febd9ba80af8ef7511da5b6b5'
             '1727a770f7d9c1838718a186545ae84fad05e29be18043f8eec46e475842a790'
-            '39278fbbf5fb4f646ce651690877f89d1c5811a3d4acb27700c1cb3cdb78fd3b'
+            '5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77'
             '3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b'
             '5267fca4496028628a95160fc423a33e8b2e6af8a5302579e322e4b520293cae'
             'de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c'
-            '23e78b90f2fcf45d3e842032ce32e3f2d1545ba6636271dcbf24fa306d87be7a')
-b2sums=('2e8e4ee98f904aa02f304a6c3cbbb81d04802203e270e6b8ad2b7a62b334ac28f5e91687d7a92501f66b0043255a533d024537ff5ef3f2f03d986e46a7272eeb'
+            '901fa70d88b9d6c98022e23b4136f9f3e54e4662c3bc1bd1d84a42a9a0f0c1e9')
+b2sums=('e0864a0b323e3388cc8f138c0ecd9751b2997a6dc2aeb3c7bf110b51faf7f93473278a27862588b5a7272c3281924e2d049e86171d7ce78a1382f5b436b83b96'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
         'be2f4cc356e67861b7c47b15132ad3178bfbb206137223cf77691fc5e4d75cb035a3a74cdbfa3766cc2924dfd503417f4758084732215264c715f050f231bcc8'
         'bfb6a0ef05abedecc5fc550a8de9c57f2909e0307cec963c913c387a9f037aa88acc588ac3279e5869033ffac7949c5867c96f30763d521659d62047cd58d6d8'
-        'fff0dec06b21e391783cc136790238acb783780eaedcf14875a350e7ceb46fdc100c8b9e3f09fb7f4c2196c25d4c6b61e574c0dad762d94533b628faab68cf5c'
+        '4b89e07f23af8328dbb34fe2b3f1b202f1e6a3885a6269740a23359b41bb4099ac2484565d3b2b0936261689ca525785ac620c766997234fd8d0f409e80e5ea3'
         '4cede03c08758ccd6bf53a0d0057d7542dfdd0c93d342e89f3b90460be85518a9fd24958d8b1da2b5a09b5ddbee8a4263982194158e171c2bba3e394d88d6dac'
         '77c4b166f1200e1ee2ab94a5014acd334c1fe4b7d72851d73768d491c56c6779a0882a304c1f30c88732a6168351f0f786b10516ae537cff993892a749175848'
         '35e8548611c51ee75f4d04926149e5e54870d7073d9b635d550a6fa0f85891f57f326bdbcff3dd8618cf40f8e08cf903ef87d9c034d5921d8b91e1db842cdd7c'
-        '2cff6626624d03f70f1662af45a8644c28a9f92e2dfe38999bef3ba4a4c1ce825ae598277e9cb7abd5585eebfb17b239effc8d0bbf1c6ac196499f0d288e5e01')
+        '8bc6f68ed286bea617a2cfaf3949bb699d3a0466faeca735314a51596ce950e4ee57eda88154bd562c1728cfaff4cdb5bc1ba701b9d47a9c50d4c4f011bee975')
 
 prepare() {
   cd mesa-$_mesaver
