@@ -483,6 +483,9 @@ package_mesa() {
   _install fakeinstall/$_libdir/libGLX_mesa.so*
   _install fakeinstall/$_libdir/libEGL_mesa.so*
 
+    # gallium so file
+  _install fakeinstall/$_libdir/libgallium-*.so
+
   # indirect rendering
   ln -sr "$pkgdir"/$_libdir/libGLX_{mesa,indirect}.so.0
 
