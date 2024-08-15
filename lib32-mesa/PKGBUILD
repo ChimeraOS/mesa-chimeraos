@@ -17,7 +17,7 @@ pkgname=(
   'lib32-mesa-vdpau'
   'lib32-mesa'
 )
-_mesaver=24.2.0-rc2
+_mesaver=24.2.0
 pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 epoch=1
@@ -104,7 +104,7 @@ for _crate in "${!_crates[@]}"; do
   source+=($_crate-${_crates[$_crate]}.tar.gz::https://crates.io/api/v1/crates/$_crate/${_crates[$_crate]}/download)
 done
 
-sha256sums=('3b2207cb4aadf2c2f08be0e62a10b17f7638786268e74e9cd8a92f176630b9d0'
+sha256sums=('c02bb72cea290f78b11895a0c95c7c92394f180d7ff66d4a762ec6950a58addf'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
             'f1343e521907006dc482e619dff5b43db616977febd9ba80af8ef7511da5b6b5'
@@ -114,7 +114,7 @@ sha256sums=('3b2207cb4aadf2c2f08be0e62a10b17f7638786268e74e9cd8a92f176630b9d0'
             '5267fca4496028628a95160fc423a33e8b2e6af8a5302579e322e4b520293cae'
             'de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c'
             '901fa70d88b9d6c98022e23b4136f9f3e54e4662c3bc1bd1d84a42a9a0f0c1e9')
-b2sums=('e0864a0b323e3388cc8f138c0ecd9751b2997a6dc2aeb3c7bf110b51faf7f93473278a27862588b5a7272c3281924e2d049e86171d7ce78a1382f5b436b83b96'
+b2sums=('dfbd0e5b8de3db475f40a8313ee3013bb513d505541e056efd84aad50d5043414dd2c0b95e6c7336a1b4d29037274dae2fa1fdb9697187bf239a5adb54dd3721'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
         'be2f4cc356e67861b7c47b15132ad3178bfbb206137223cf77691fc5e4d75cb035a3a74cdbfa3766cc2924dfd503417f4758084732215264c715f050f231bcc8'
