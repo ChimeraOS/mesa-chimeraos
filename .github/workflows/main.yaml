@@ -34,6 +34,8 @@ jobs:
           pacman-key --populate archlinux
           mkdir -p /etc/gnupg && echo "auto-key-retrieve" >> /etc/gnupg/gpg.conf
           echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> /etc/pacman.conf
+      - name: Disable generation of debug packages
+        run: sed -i '/BUILDENV/s/ debug/ !debug/g' /etc/makepkg.conf
       - name: Generate .SRCINFO
         run: |
           su build bash -c "cd /home/build/mesa && makepkg --printsrcinfo > /home/build/mesa/.SRCINFO"
