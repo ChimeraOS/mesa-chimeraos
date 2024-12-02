@@ -14,12 +14,12 @@ pkgname=(
   vulkan-nouveau
   vulkan-radeon
   vulkan-swrast
-#  vulkan-virtio
-#  mesa-docs
+  vulkan-virtio
+  mesa-docs
 )
 _mesaver=24.3.0
 pkgver=${_mesaver//-/.}.chos1
-pkgrel=1
+pkgrel=2
 epoch=1
 pkgdesc="Open-source OpenGL drivers"
 url="https://www.mesa3d.org/"
@@ -75,6 +75,9 @@ makedepends=(
 options=(
   # GCC 14 LTO causes segfault in LLVM under si_llvm_optimize_module
   !lto
+
+  # debug packages are a waste of time and space
+  !debug
 )
 source=(
   https://mesa.freedesktop.org/archive/mesa-${_mesaver}.tar.xz{,.sig}
@@ -264,10 +267,10 @@ package_mesa() {
     _pick vkswrast $icddir/lvp_icd*.json
     _pick vkswrast $libdir/libvulkan_lvp.so
 
-    #_pick vkvirtio $icddir/virtio_icd*.json
-    #_pick vkvirtio $libdir/libvulkan_virtio.so
+    _pick vkvirtio $icddir/virtio_icd*.json
+    _pick vkvirtio $libdir/libvulkan_virtio.so
 
-    #_pick docs usr/share/doc
+    _pick docs usr/share/doc
 
     # indirect rendering
     ln -sr $libdir/libGLX_{mesa,indirect}.so.0
