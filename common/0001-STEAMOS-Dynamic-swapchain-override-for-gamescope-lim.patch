@@ -1,4 +1,4 @@
-From 037c35841d89fbb8150f839960e34a1e20810b3f Mon Sep 17 00:00:00 2001
+From c7acec8f82d6a7bda2e8074f736a006010b7fff2 Mon Sep 17 00:00:00 2001
 From: Samuel Pitoiset <samuel.pitoiset@gmail.com>
 Date: Thu, 22 Feb 2024 22:32:45 +0100
 Subject: [PATCH] STEAMOS: Dynamic swapchain override for gamescope limiter for
@@ -9,17 +9,17 @@ been removed because the Gamescope WSI layer already handles that.
 
 Signed-off-by: Samuel Pitoiset <samuel.pitoiset@gmail.com>
 ---
- src/loader/loader_dri3_helper.c | 42 +++++++++++++++++++++++++++++++--
- src/loader/loader_dri3_helper.h |  1 +
- src/loader/meson.build          |  2 +-
- 3 files changed, 42 insertions(+), 3 deletions(-)
+ .../frontends/dri/loader_dri3_helper.c        | 41 ++++++++++++++++++-
+ .../frontends/dri/loader_dri3_helper.h        |  1 +
+ src/gallium/frontends/dri/meson.build         |  2 +-
+ 3 files changed, 41 insertions(+), 3 deletions(-)
 
-diff --git a/src/loader/loader_dri3_helper.c b/src/loader/loader_dri3_helper.c
-index dc1db4fa8be..38e55dc23ae 100644
---- a/src/loader/loader_dri3_helper.c
-+++ b/src/loader/loader_dri3_helper.c
-@@ -289,6 +289,30 @@ dri3_update_max_num_back(struct loader_dri3_drawable *draw)
-    }
+diff --git a/src/gallium/frontends/dri/loader_dri3_helper.c b/src/gallium/frontends/dri/loader_dri3_helper.c
+index 268ec3d86c8..b657f233634 100644
+--- a/src/gallium/frontends/dri/loader_dri3_helper.c
++++ b/src/gallium/frontends/dri/loader_dri3_helper.c
+@@ -76,6 +76,30 @@ get_screen_for_root(xcb_connection_t *conn, xcb_window_t root)
+    return NULL;
  }
  
 +static unsigned
@@ -46,10 +46,10 @@ index dc1db4fa8be..38e55dc23ae 100644
 +   return override_value;
 +}
 +
- void
- loader_dri3_set_swap_interval(struct loader_dri3_drawable *draw, int interval)
+ static xcb_visualtype_t *
+ get_xcb_visualtype_for_depth(struct loader_dri3_drawable *draw, int depth)
  {
-@@ -303,10 +327,12 @@ loader_dri3_set_swap_interval(struct loader_dri3_drawable *draw, int interval)
+@@ -288,10 +312,12 @@ loader_dri3_set_swap_interval(struct loader_dri3_drawable *draw, int interval)
      * PS. changing from value A to B and A < B won't cause swap out of order but
      * may still gets wrong target_msc value at the beginning.
      */
@@ -64,12 +64,11 @@ index dc1db4fa8be..38e55dc23ae 100644
  }
  
  static void
-@@ -438,6 +464,12 @@ loader_dri3_drawable_init(xcb_connection_t *conn,
-    draw->swap_interval = dri_get_initial_swap_interval(draw->dri_screen_render_gpu,
-                                                        draw->ext->config);
+@@ -420,6 +446,11 @@ loader_dri3_drawable_init(xcb_connection_t *conn,
+ 
+    draw->swap_interval = dri_get_initial_swap_interval(draw->dri_screen_render_gpu);
  
 +   draw->orig_swap_interval = draw->swap_interval;
-+
 +   unsigned gamescope_override = gamescope_swapchain_override();
 +   if (gamescope_override == 1)
 +      draw->swap_interval = 1;
@@ -77,7 +76,7 @@ index dc1db4fa8be..38e55dc23ae 100644
     dri3_update_max_num_back(draw);
  
     /* Create a new drawable */
-@@ -1085,6 +1117,12 @@ loader_dri3_swap_buffers_msc(struct loader_dri3_drawable *draw,
+@@ -1064,6 +1095,12 @@ loader_dri3_swap_buffers_msc(struct loader_dri3_drawable *draw,
     if (draw->type == LOADER_DRI3_DRAWABLE_WINDOW) {
        dri3_fence_reset(draw->conn, back);
  
@@ -90,31 +89,31 @@ index dc1db4fa8be..38e55dc23ae 100644
        /* Compute when we want the frame shown by taking the last known
         * successful MSC and adding in a swap interval for each outstanding swap
         * request. target_msc=divisor=remainder=0 means "Use glXSwapBuffers()
-diff --git a/src/loader/loader_dri3_helper.h b/src/loader/loader_dri3_helper.h
-index cc2362dd599..fe73b3f329c 100644
---- a/src/loader/loader_dri3_helper.h
-+++ b/src/loader/loader_dri3_helper.h
-@@ -178,6 +178,7 @@ struct loader_dri3_drawable {
+diff --git a/src/gallium/frontends/dri/loader_dri3_helper.h b/src/gallium/frontends/dri/loader_dri3_helper.h
+index 9061e9755e2..6cc64be298a 100644
+--- a/src/gallium/frontends/dri/loader_dri3_helper.h
++++ b/src/gallium/frontends/dri/loader_dri3_helper.h
+@@ -170,6 +170,7 @@ struct loader_dri3_drawable {
     bool block_on_depleted_buffers;
     bool queries_buffer_age;
     int swap_interval;
 +   int orig_swap_interval;
  
-    struct loader_dri3_extensions *ext;
     const struct loader_dri3_vtable *vtable;
-diff --git a/src/loader/meson.build b/src/loader/meson.build
-index ffb970f26be..326e2b5b9fd 100644
---- a/src/loader/meson.build
-+++ b/src/loader/meson.build
-@@ -29,7 +29,7 @@ if with_platform_x11 and with_dri3
-     dependencies : [
-       idep_mesautil,
-       dep_libdrm, dep_xcb_dri3, dep_xcb_present, dep_xcb_sync, dep_xshmfence,
--      dep_xcb_xfixes,
-+      dep_xcb_xfixes, dep_xcb_xrandr, idep_mesautil
-     ],
-     build_by_default : false,
-   )
+ 
+diff --git a/src/gallium/frontends/dri/meson.build b/src/gallium/frontends/dri/meson.build
+index a98c8c0a903..0d4f816d920 100644
+--- a/src/gallium/frontends/dri/meson.build
++++ b/src/gallium/frontends/dri/meson.build
+@@ -23,7 +23,7 @@ if with_platform_x11
+   deps_for_libdri += dep_xcb
+   if with_dri_platform == 'drm'
+     deps_for_libdri += [dep_xcb_dri3, dep_xcb_present, dep_xcb_sync,
+-                        dep_xshmfence, dep_xcb_xfixes]
++                        dep_xshmfence, dep_xcb_xfixes, dep_xcb_xrandr, idep_mesautil]
+     files_libdri += files('loader_dri3_helper.c')
+   endif
+ endif
 -- 
-2.45.0
+2.47.1
 
