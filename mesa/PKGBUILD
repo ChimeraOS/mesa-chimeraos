@@ -17,9 +17,9 @@ pkgname=(
   vulkan-virtio
   mesa-docs
 )
-_mesaver=24.3.3
+_mesaver=25.0.0
 pkgver=${_mesaver//-/.}.chos1
-pkgrel=2
+pkgrel=1
 epoch=1
 pkgdesc="Open-source OpenGL drivers"
 url="https://www.mesa3d.org/"
@@ -111,7 +111,7 @@ for _crate in "${!_crates[@]}"; do
   source+=($_crate-${_crates[$_crate]}.tar.gz::https://crates.io/api/v1/crates/$_crate/${_crates[$_crate]}/download)
 done
 
-sha256sums=('105afc00a4496fa4d29da74e227085544919ec7c86bd92b0b6e7fcc32c7125f4'
+sha256sums=('96a53501fd59679654273258c6c6a1055a20e352ee1429f0b123516c7190e5b0'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
             'a34c312c525717275661e095e393ae31a00104b5d9461ff4de21710caaa069f1'
@@ -121,7 +121,7 @@ sha256sums=('105afc00a4496fa4d29da74e227085544919ec7c86bd92b0b6e7fcc32c7125f4'
             '5267fca4496028628a95160fc423a33e8b2e6af8a5302579e322e4b520293cae'
             'de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c'
             '901fa70d88b9d6c98022e23b4136f9f3e54e4662c3bc1bd1d84a42a9a0f0c1e9')
-b2sums=('b973227885b3fd5fa6267c150a5e174f5e8a1c6378cf9326845ba75332084d7c914917c8e3b6d7b89f49ede0f5a5b453eb1ce42591e98b0cbad3f85bd3040035'
+b2sums=('9aca2416ea4e304d46fda648cb9b8e04caa053458b91893fb874e9a30d8293722c3bed1098c2720b04b0c7278eba3b0387900b56e13b6133a23c0f6be705025c'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
         '40672a16d4fd1d5154412896cc228e76f35d5323fdf5a2ff07bf3c97cf11a49d0f9e286917667d35fdef8d64ef8aa5583b9ca3a49a8e4b199009084c18f45130'
