@@ -15,11 +15,10 @@ pkgname=(
   vulkan-radeon
   vulkan-swrast
   vulkan-virtio
-  mesa-docs
 )
 _mesaver=25.0.0
 pkgver=${_mesaver//-/.}.chos1
-pkgrel=1
+pkgrel=2
 epoch=1
 pkgdesc="Open-source OpenGL drivers"
 url="https://www.mesa3d.org/"
@@ -71,10 +70,6 @@ makedepends=(
   'rust-bindgen'
   'wayland-protocols'
   'xorgproto'
-
-  # html-docs
-  'python-sphinx'
-  'python-sphinx-hawkmoth'
 )
 options=(
   # GCC 14 LTO causes segfault in LLVM under si_llvm_optimize_module
@@ -163,7 +158,7 @@ build() {
     -D gles1=disabled
     -D glvnd=enabled
     -D glx=dri
-    -D html-docs=enabled
+    -D html-docs=disabled
     -D intel-clc=enabled
     -D libunwind=disabled
     -D microsoft-clc=disabled
@@ -274,8 +269,6 @@ package_mesa() {
 
     _pick vkvirtio $icddir/virtio_icd*.json
     _pick vkvirtio $libdir/libvulkan_virtio.so
-
-    _pick docs usr/share/doc
 
     # indirect rendering
     ln -sr $libdir/libGLX_{mesa,indirect}.so.0
@@ -486,14 +479,6 @@ package_vulkan-virtio() {
   provides=(vulkan-driver)
 
   mv vkvirtio/* "$pkgdir"
-
-  install -Dm644 mesa-$_mesaver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
-}
-
-package_mesa-docs() {
-  pkgdesc="Mesa's documentation"
-
-  mv docs/* "$pkgdir"
 
   install -Dm644 mesa-$_mesaver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
 }
