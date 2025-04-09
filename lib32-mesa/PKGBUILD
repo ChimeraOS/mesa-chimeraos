@@ -14,8 +14,6 @@ pkgname=(
   lib32-vulkan-mesa-layers
   lib32-vulkan-nouveau
   lib32-vulkan-radeon
-  lib32-vulkan-swrast
-  lib32-vulkan-virtio
 )
 _mesaver=25.0.3
 pkgver=${_mesaver//-/.}.chos1
@@ -151,10 +149,9 @@ build() {
     --cross-file lib32
     -D android-libbacktrace=disabled
     -D b_ndebug=true
-    -D gallium-drivers=radeonsi,nouveau,swrast,i915,iris,crocus,zink
+    -D gallium-drivers=radeonsi,nouveau,i915,iris,crocus,zink
     -D gallium-extra-hud=true
-    -D gallium-nine=true
-    -D gallium-opencl=icd
+    -D gallium-nine=false
     -D gallium-rusticl=true
     -D gallium-xa=disabled
     -D gles1=disabled
@@ -169,8 +166,8 @@ build() {
     -D valgrind=disabled
     -D video-codecs=all
     -D vulkan-beta=true
-    -D vulkan-drivers=amd,intel,intel_hasvk,swrast,nouveau,virtio
-    -D vulkan-layers=device-select,intel-nullhw,overlay,screenshot
+    -D vulkan-drivers=amd,intel,intel_hasvk,nouveau
+    -D vulkan-layers=device-select,intel-nullhw,overlay,screenshot,vram-report-limit
     --buildtype=release
   )
 
@@ -262,12 +259,6 @@ package_lib32-mesa() {
 
     _pick vkradeon $icddir/radeon_icd*.json
     _pick vkradeon $libdir/libvulkan_radeon.so
-
-    _pick vkswrast $icddir/lvp_icd*.json
-    _pick vkswrast $libdir/libvulkan_lvp.so
-
-    _pick vkvirtio $icddir/virtio_icd*.json
-    _pick vkvirtio $libdir/libvulkan_virtio.so
 
     rm -rv etc usr/{bin,include,share}
 
@@ -407,64 +398,6 @@ package_lib32-vulkan-radeon() {
   provides=(lib32-vulkan-driver)
 
   mv vkradeon/* "$pkgdir"
-
-  install -Dm644 mesa-$_mesaver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
-}
-
-package_lib32-vulkan-swrast() {
-  pkgdesc="Open-source Vulkan driver for CPUs (Software Rasterizer) - 32-bit"
-  depends=(
-    lib32-expat
-    lib32-gcc-libs
-    lib32-glibc
-    lib32-libdrm
-    lib32-libx11
-    lib32-libxcb
-    lib32-libxshmfence
-    lib32-llvm-libs
-    lib32-spirv-tools
-    lib32-systemd
-    lib32-vulkan-icd-loader
-    lib32-wayland
-    lib32-xcb-util-keysyms
-    lib32-zlib
-    lib32-zstd
-
-    vulkan-swrast
-  )
-  optdepends=("lib32-vulkan-mesa-layers: additional vulkan layers")
-  conflicts=(lib32-vulkan-mesa)
-  replaces=(lib32-vulkan-mesa)
-  provides=(lib32-vulkan-driver)
-
-  mv vkswrast/* "$pkgdir"
-
-  install -Dm644 mesa-$_mesaver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
-}
-
-package_lib32-vulkan-virtio() {
-  pkgdesc="Open-source Vulkan driver for Virtio-GPU (Venus) - 32-bit"
-  depends=(
-    lib32-expat
-    lib32-gcc-libs
-    lib32-glibc
-    lib32-libdrm
-    lib32-libx11
-    lib32-libxcb
-    lib32-libxshmfence
-    lib32-systemd
-    lib32-vulkan-icd-loader
-    lib32-wayland
-    lib32-xcb-util-keysyms
-    lib32-zlib
-    lib32-zstd
-
-    vulkan-virtio
-  )
-  optdepends=("lib32-vulkan-mesa-layers: additional vulkan layers")
-  provides=(lib32-vulkan-driver)
-
-  mv vkvirtio/* "$pkgdir"
 
   install -Dm644 mesa-$_mesaver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
 }
