@@ -7,7 +7,6 @@
 pkgbase=lib32-mesa
 pkgname=(
   lib32-mesa
-  lib32-opencl-clover-mesa
   lib32-opencl-rusticl-mesa
   lib32-vulkan-intel
   lib32-vulkan-mesa-layers
@@ -248,9 +247,6 @@ package_lib32-mesa() {
 
     cd "$pkgdir"
 
-    _pick clover $libdir/gallium-pipe
-    _pick clover $libdir/libMesaOpenCL*
-
     _pick clrust $libdir/libRusticlOpenCL*
 
     _pick vkintel $icddir/intel_*.json
@@ -275,31 +271,6 @@ package_lib32-mesa() {
     # indirect rendering
     ln -sr $libdir/libGLX_{mesa,indirect}.so.0
   )
-
-  install -Dm644 mesa-$_mesaver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
-}
-
-package_lib32-opencl-clover-mesa() {
-  pkgdesc="Open-source OpenCL drivers - Clover variant - 32-bit"
-  depends=(
-    lib32-clang
-    lib32-expat
-    lib32-gcc-libs
-    lib32-glibc
-    lib32-libdrm
-    lib32-libelf
-    lib32-llvm-libs
-    lib32-zlib
-    lib32-zstd
-
-    opencl-clover-mesa
-  )
-  optdepends=("opencl-headers: headers necessary for OpenCL development")
-  provides=(lib32-opencl-driver)
-  replaces=("lib32-opencl-mesa<=23.1.4-1")
-  conflicts=(lib32-opencl-mesa)
-
-  mv clover/* "$pkgdir"
 
   install -Dm644 mesa-$_mesaver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
 }
