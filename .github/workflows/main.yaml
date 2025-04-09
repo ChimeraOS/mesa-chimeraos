@@ -38,6 +38,9 @@ jobs:
         run: |
           sed -i '/BUILDENV/s/debug/!debug/g' /etc/makepkg.conf
           sed -i '/BUILDENV/s/!!debug/!debug/g' /etc/makepkg.conf
+      - name: Set CPU optimizations
+        run: |
+          sed -i '/BUILDENV/s/CFLAGS="-march=x86-64 -mtune=generic/CFLAGS="-march=x86-64-v2 -mtune=x86-64-v4/g' /etc/makepkg.conf
       - name: Generate .SRCINFO
         run: |
           su build bash -c "cd /home/build/mesa && makepkg --printsrcinfo > /home/build/mesa/.SRCINFO"

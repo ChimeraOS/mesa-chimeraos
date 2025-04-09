@@ -71,9 +71,6 @@ makedepends=(
   'xorgproto'
 )
 options=(
-  # GCC 14 LTO causes segfault in LLVM under si_llvm_optimize_module
-  !lto
-
   # debug packages are a waste of time and space
   !debug
 )
@@ -149,6 +146,7 @@ build() {
     --cross-file lib32
     -D android-libbacktrace=disabled
     -D b_ndebug=true
+    -D b_lto=true
     -D gallium-drivers=radeonsi,nouveau,i915,iris,crocus,zink
     -D gallium-extra-hud=true
     -D gallium-nine=false
