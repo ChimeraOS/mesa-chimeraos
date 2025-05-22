@@ -14,7 +14,7 @@ pkgname=(
   vulkan-mesa-layers
   vulkan-radeon
 )
-_mesaver=25.1.0
+_mesaver=25.1.1
 pkgver=${_mesaver//-/.}.chos1
 pkgrel=1
 epoch=1
@@ -101,7 +101,7 @@ for _crate in "${!_crates[@]}"; do
   source+=($_crate-${_crates[$_crate]}.tar.gz::https://crates.io/api/v1/crates/$_crate/${_crates[$_crate]}/download)
 done
 
-sha256sums=('b1c45888969ee5df997e2542654f735ab1b772924b442f3016d2293414c99c14'
+sha256sums=('cf942a18b7b9e9b88524dcbf0b31fed3cde18e6d52b3375b0ab6587a14415bce'
             'SKIP'
             '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
             '23deb7f4db39c7e94a4384dcefc67d3085f99c7b34e291a0d26096ad2f9407df'
@@ -111,7 +111,7 @@ sha256sums=('b1c45888969ee5df997e2542654f735ab1b772924b442f3016d2293414c99c14'
             '5267fca4496028628a95160fc423a33e8b2e6af8a5302579e322e4b520293cae'
             'de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c'
             '901fa70d88b9d6c98022e23b4136f9f3e54e4662c3bc1bd1d84a42a9a0f0c1e9')
-b2sums=('5057c6664ca135177d0ccf9cc0c6e0c6ea7efa4cff7ee626050bec1682c9e864dc684c5579eff6a9df77ac0f7280bf10e6e93474d0369de250ccf38c9dc7d104'
+b2sums=('73618405dee247f7e3141f817ab66e5bbb6256d116cc1bb3eb86ed8c9511194891d3e68b3d7d36cdc3a68fab25a231da58e3bba2da7914e8c7d55ea861d50952'
         'SKIP'
         '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
         '00099abee0ac6930ef834f5df5f80bdf28820363be04e0edc1b17227a686955cfa4913d1044305988e9a04ca8507889db2950b54b0d8c14426b399d6348ae033'
