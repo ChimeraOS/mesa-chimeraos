@@ -9,14 +9,14 @@
 pkgbase=mesa
 pkgname=(
   mesa
-  opencl-rusticl-mesa
+  opencl-mesa
   vulkan-intel
   vulkan-mesa-layers
   vulkan-radeon
 )
 _mesaver=25.1.1
 pkgver=${_mesaver//-/.}.chos1
-pkgrel=1
+pkgrel=2
 epoch=1
 pkgdesc="Open-source OpenGL drivers"
 url="https://www.mesa3d.org/"
@@ -262,7 +262,7 @@ package_mesa() {
   install -Dm644 mesa-$_mesaver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
 }
 
-package_opencl-rusticl-mesa() {
+package_opencl-mesa() {
   pkgdesc="Open-source OpenCL drivers - RustICL variant"
   depends=(
     clang
